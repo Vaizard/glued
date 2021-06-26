@@ -1,0 +1,31 @@
+{
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vaizard/glued-skeleton.git"
+  },
+  "dependencies": {
+    "@babel/core": "^7.12",
+    "@babel/standalone": "^7.12",
+    "@claviska/jquery-ajax-submit": "latest",
+    "@rjsf/bootstrap-4": "2.4.0",
+    "@rjsf/core": "2.4.0",
+    "bootstrap": "^4.5.3",
+    "core-js": "^3.6.5",
+    "dayjs": "^1.8.0",
+    "draft-js": "^0.11",
+    "immutable": "^3",
+    "jquery": "^3",
+    "jquery-jeditable": "^2.0.17",
+    "jquery-mask-plugin": "latest",
+    "jquery-typeahead": "^2.11.1",
+    "loose-envify": "^1.4.0",
+    "moment": "^2.29.1",
+    "popper.js": "^1.16.1",
+    "react": "^16",
+    "react-bootstrap": "^1.4.0",
+    "react-dom": "^16",
+    "stisla": "latest",
+    "twig": "^1.15"
+  },
+  "license": "MIT"
+}

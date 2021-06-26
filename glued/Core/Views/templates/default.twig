@@ -1,0 +1,137 @@
+{% autoescape %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" name="viewport">
+  <title>Glued / {{ pageTitle }}</title>
+  <!-- CSS Files -->
+  {{ assets({files: [
+    '@public/assets/node_modules/bootstrap/dist/css/bootstrap.min.css',
+    '@public/assets/node_modules/select2/dist/css/select2.min.css',
+    '@public/assets/node_modules/stisla/assets/css/style.css',
+    '@public/assets/node_modules/stisla/assets/css/components.css',
+    '@public/assets/node_modules/datatables.net-bs4/css/dataTables.bootstrap4.min.css',
+    '@public/assets/node_modules/datatables.net-select-bs4/css/select.bootstrap4.min.css',
+    '@public/assets/node_modules/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css',
+    '@public/assets/node_modules/bootstrap-daterangepicker/daterangepicker.css',
+    '@public/assets/css/glued.css',
+    ], name: 'styles'}) }}
+
+</head>
+
+<body>
+  <div id="app">
+    <div class="main-wrapper main-wrapper-1">
+      <div class="navbar-bg"></div>
+      {% include '/Core/Views/templates/partials/toasts.twig' %}
+      
+      <nav class="navbar navbar-expand-lg main-navbar">
+        <form class="form-inline mr-auto">
+          <ul class="navbar-nav mr-3">
+            <li><a href="#" data-toggle="sidebar" class="nav-link nav-link-lg"><i class="fas fa-bars"></i></a></li>
+            <li><a href="#" data-toggle="search" class="nav-link nav-link-lg d-sm-none"><i class="fas fa-search"></i></a></li>
+          </ul>
+          <div class="search-element">
+            <input class="form-control" type="search" placeholder="{{ __('Search (currently disabled)') }}" aria-label="Search" data-width="250">
+            <button class="btn" type="submit"><i class="fas fa-search"></i></button>
+            <div class="search-backdrop"></div>
+            <div class="search-result">
+              <div class="search-header">
+                Notice
+              </div>
+              <div class="search-item">
+                <a href="#">Search is currently disabled</a>
+                <a href="#" class="search-close"><i class="fas fa-times"></i></a>
+              </div>
+            </div>
+          </div>
+        </form>
+        
+        {% if authn.success %}
+        {% include '/Core/Views/templates/partials/menu-authenticated.twig' %}
+        {% else %}
+        {% include '/Core/Views/templates/partials/menu-anonymous.twig' %}
+        {% endif %}
+      </nav>
+      <div class="main-sidebar sidebar-style-2">
+        <aside id="sidebar-wrapper">
+          <div class="sidebar-brand">
+            <a href="/">Glued</a>
+          </div>
+          <div class="sidebar-brand sidebar-brand-sm">
+            <a href="/">Gl</a>
+          </div>
+          {% if authn.success %}
+          {% include '/Core/Views/templates/partials/sidebar.twig' %}
+          {% endif %}
+
+        </aside>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+      <section class="section">
+        {% block content %}{% endblock %}
+        
+        {% include '/Stor/Views/fileupload.twig' %}
+        
+      </section>
+      <iframe src="{{ url_for('core.auth.extend.api') }}" width="0" height="0" loading="eager" allowfullscreen="false" style="display: none"></iframe>
+      </div>
+      <footer class="main-footer">
+        <div class="footer-left">
+          Copyright &copy; 2020 <div class="bullet"></div> Made by <a href="https://industra.space/">INDUSTRA</a> <div class="bullet"></div> <a href="https://github.com/vaizard/glued-skeleton">{{ __('Source code') }}</a>
+        </div>
+        <div class="footer-right">
+        
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <link rel="stylesheet" href="/assets/node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+
+  {{ assets({files: [
+    '@public/assets/node_modules/jquery/dist/jquery.min.js',
+    '@public/assets/node_modules/popper.js/dist/umd/popper.min.js',
+    '@public/assets/node_modules/bootstrap/dist/js/bootstrap.min.js',
+    '@public/assets/node_modules/stisla/assets/js/scripts.js',
+    '@public/assets/node_modules/stisla/assets/js/custom.js'
+    ], name: 'stisla-template.js', nonce: csp_nonce.script_src }) }}
+
+  {% include '/Core/Views/templates/partials/rjsf.twig' %}
+
+  {{ assets({files: [
+    '@public/assets/node_modules/tooltip.js/dist/umd/tooltip.min.js',
+    '@public/assets/node_modules/nicescroll/dist/jquery.nicescroll.min.js',
+    '@public/assets/node_modules/moment/min/moment.min.js',
+    '@public/assets/node_modules/datatables.net/js/jquery.dataTables.min.js',
+    '@public/assets/node_modules/datatables.net-bs4/js/dataTables.bootstrap4.min.js',
+    '@public/assets/node_modules/datatables.net-select-bs4/js/select.bootstrap4.min.js',
+    '@public/assets/node_modules/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js',
+    '@public/assets/node_modules/bootstrap-daterangepicker/daterangepicker.js'
+    ], name: 'stisla-general.js', nonce: csp_nonce.script_src, inline: false}) }}
+
+  {{ assets({files: [
+    '@public/assets/node_modules/jquery-mask-plugin/dist/jquery.mask.min.js',
+    '@public/assets/node_modules/select2/dist/js/select2.full.min.js',
+    '@public/assets/node_modules/@claviska/jquery-ajax-submit/jquery.ajaxSubmit.min.js',
+    '@public/assets/node_modules/twig/twig.min.js',
+    '@public/assets/node_modules/jquery-typeahead/dist/jquery.typeahead.min.js',
+    '@public/assets/js/glued.js'
+    ], name: 'glued-ui.js', nonce: csp_nonce.script_src}) }}
+
+
+  {% block additionaljs %}{% endblock %}
+  {% include '/Stor/Views/fileupload.js.twig' %}
+
+  <script nonce="{{ csp_nonce.script_src }}">
+  $(".alert-dismissible").fadeTo(2000, 500).slideUp(500, function(){
+      $(".alert-dismissible").alert('close');
+  });
+  </script>
+
+</body>
+</html>
+{% endautoescape %}

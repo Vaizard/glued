@@ -1,0 +1,73 @@
+
+<script nonce="{{ csp_nonce.script_src }}" type="text/javascript">
+  
+  // Show modal
+  $('#storFileUpload').on('show.bs.modal', function (event) {
+    // Button that triggered the modal
+    var button = $(event.relatedTarget)
+    // Extract info from data-* attributes
+    var id = button.data('id');
+    var module = button.data('module');
+    console.log("id " + id + ", module " + module);
+    var modal = $(this);
+    // Update the modal's content.
+    modal.find('#for_module').text(module);
+    modal.find('#for_id').text(id);
+    modal.find('#cil_hidden_dir').val(module + '/' + id);
+    
+    // if id or module is empty, show other content
+    if (module == "") {
+        modal.find('.modal-footer').hide();
+    }
+    else {
+        modal.find('.modal-footer').show();
+        // fill reload values at ajax upload button
+        modal.find('#ajax-upload').attr("data-freload", button.data('freload'));
+    }
+  });
+  
+  // ajax upload
+  $('#storFileUpload #ajax-upload').on('click', function (event) {
+        
+        // reset error text
+        $('#error_file_upload_message').text('');
+        
+        // button ktery to zmackl ma na sobe data
+        var button = $(this);
+        
+        // insert complete form into FormData object
+        var formData = new FormData(document.getElementById("storFileUploadForm"));
+        
+        $.ajax({
+            url : '{{ url_for("stor.api.uploader") }}',
+            type : 'POST',
+            data : formData,
+            processData: false,  // tell jQuery not to process the data
+            contentType: false,  // tell jQuery not to set contentType
+            success : function(retData) {
+                $('#storFileUpload').modal('toggle');
+                console.log(retData);
+                $('#toast-placeholder').empty();
+                $(Twig.twig({ ref: 'toasts' }).render({ title: '{{ __("Stor uploader") }}' , msg: retData.message })).appendTo("#toast-placeholder");
+                $('.toast').toast('show');
+                // mozna callback funkce na tlacitku
+                var reload_function_name = button.data('freload');
+                if (reload_function_name != '') {
+                    window[reload_function_name]();
+                }
+            },
+            error: function ($xhr) {
+                var retData = $xhr.responseJSON;
+                
+                $('#storFileUpload').modal('toggle');
+                console.log(retData);
+                $('#toast-placeholder').empty();
+                $(Twig.twig({ ref: 'toasts' }).render({ title: '{{ __("Stor uploader") }}' , msg: retData.message })).appendTo("#toast-placeholder");
+                $('.toast').toast('show');
+                // mozna callback funkce se asi pri eroru nebude vykonavat
+            }
+        });
+        
+  });
+  
+</script>

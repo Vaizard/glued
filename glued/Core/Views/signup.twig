@@ -1,0 +1,102 @@
+{% extends '/Core/Views/templates/default.twig' %}
+
+{% block content %}
+          <div class="section-header">
+            <h1>{{ __('Sign up') }}</h1>
+          </div>
+          <div class="section-body" id="core_signup">
+            {% include '/Core/Views/templates/partials/flash.twig' %}
+            <div class="card card-primary col-6">
+              <form action="{{ url_for('core.signup.web') }}" method="post" autocomplete="off" id="signup_form">
+                <div class="card-header">{{ __('Please provide your details below')}}</div>
+                  <div class="card-body pb-0">
+                    <div class="form-group">
+                      <label for="email">{{ __('Email') }}</label>
+                      <div class="twigjs" id="email_placeholder"></div>
+
+                      {% verbatim %}
+                      <script type="text/twig" id="email_twig">
+                            <input type="email" name="email" id="email_input" placeholder="you@domain.com" class="form-control{{ validation_errors.email ? ' is-invalid' : validation_reseed.email ? ' is-valid' : '' }}" value="{{ validation_reseed.email }}">
+                            {% if validation_errors.email %}
+                                <span class="invalid-feedback">{{ validation_errors.email | first }}</span>
+                            {% endif %}
+                      </script>
+                      {% endverbatim %}
+
+                    </div>
+                    <div class="form-group" id="name_group">
+                      <label for="name">{{ __('Name') }}</label>
+                      <div class="twigjs" id="name_placeholder"></div>
+
+                      {% verbatim %}
+                      <script type="text/twig" id="name_twig">
+                            <input type="text" name="name" id="name_input" class="form-control{{ validation_errors.name ? ' is-invalid'  : validation_reseed.name ? ' is-valid' : '' }}" value="{{ validation_reseed.name }}">
+                            {% if validation_errors.name %}
+                                <span class="invalid-feedback">{{ validation_errors.name | first }}</span>
+                            {% endif %}
+                      </script>
+                      {% endverbatim %}
+      
+                    </div>
+                    <div class="form-group" id="password_group">
+                      <label for="password">{{ __('Password') }}</label>
+                      <div class="twigjs" id="password_placeholder"></div>
+
+                      {% verbatim %}
+                      <script type="text/twig" id="password_twig">
+                            <input type="password" name="password" id="password_input" class="form-control{{ validation_errors.password ? ' is-invalid' : '' }}">
+                            {% if validation_errors.password %}
+                                <span class="invalid-feedback">{{ validation_errors.password | first }}</span>
+                            {% endif %}
+                      </script>
+                      {% endverbatim %}
+
+                    </div>
+                  </div>
+                  <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">{{ __('Sign up') }}</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+{% endblock %}
+{% block additionaljs %}
+  <script src="/assets/node_modules/twig/twig.min.js" nonce="{{ csp_nonce.script_src }}"></script>
+  <script src="/assets/node_modules/@claviska/jquery-ajax-submit/jquery.ajaxSubmit.min.js" nonce="{{ csp_nonce.script_src }}"></script>
+  
+  <script nonce="{{ csp_nonce.script_src }}">
+
+      // Compile the data
+      $("script[type='text/twig']").each(function() {
+          var id = $(this).attr("id"),
+          data = $(this).text();
+          Twig.twig({ id: id, data: data, allowInlineIncludes: true });
+      });
+
+      // Render the data. This requires to have a div with
+      // <div class="twigjs" id="some_placeholder"> for the loop below to work
+      $("div.twigjs").each(function() {
+          var idhold = $(this).attr("id");
+          var idtwig = $(this).attr("id").slice(0, -12) + '_twig';
+          $("#" + idhold).append(
+              Twig.twig({ ref: idtwig }).render({ })
+          );
+      });
+
+      $("#signup_form").ajaxSubmit({
+          success: function(res) {
+              window.location.reload();
+          },
+          error: function(res) {
+              $("div.twigjs").each(function() {
+                //console.log(res);
+                var idhold = $(this).attr("id");
+                var idtwig = $(this).attr("id").slice(0, -12) + '_twig';
+                $("#" + idhold).html(
+                  Twig.twig({ ref: idtwig }).render({ validation_errors: res.messages.validation_error, validation_reseed: res.messages.validation_reseed })
+                );
+              });
+          }
+      });
+  </script>
+{% endblock %}

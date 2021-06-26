@@ -1,0 +1,455 @@
+{% extends '/Core/Views/templates/default.twig' %}
+
+{% block content %}
+
+<div class="section-header">
+    <h1>{{ __('Stor') }}</h1>
+</div>
+
+<section class="section-body">
+    
+    <div class="row">
+        <div class="col-10">
+            <div class="card">
+                <div class="card-body">
+                    {{ vystup | raw }}
+                    
+                    <select id="stor-files-select2-filter" name="filters[]" multiple="multiple">
+                        {{ preset_options | raw }}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="card">
+                <div class="card-body">
+                    <button id="stor-files-filter-button" class="btn btn-primary btn-lg" title="{{ __('Filter / Search') }}"><i class="fas fa-filter"></i></button>
+                    <button id="stor_browser_upload_button" class="btn btn-success btn-lg" data-toggle="modal" data-target="#storFileUpload" data-id="" data-module="" data-freload="filter_stor_files" title="{{ __('Add files') }}"><i class="fas fa-upload"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div id="stor-files-output" class="col-12">
+            
+            <div class="card" id="helper_upload_data">
+                <div class="card-body">
+                    <div class="table-responsive" style="overflow-x: visible;">
+                        <table class="table table-sm table-hover" style="min-width: 400px;">
+                          <thead>
+                            <tr>
+                              <th class="col-sm-1">Type</th>
+                              <th class="col-sm-3">Name</th>
+                              <th class="col-sm-2">Size</th>
+                              <th class="col-sm-2">App</th>
+                              <th class="col-sm-2 d-none d-sm-table-cell">Uploaded</th>
+                              <th class="col-sm-2">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody id="stor_files_placeholder">
+            
+            {% verbatim %}
+            <script type="text/twig" id="stor_obj_twig">
+            <tr role="row" class="odd">
+            {% if row.type == 'file' %}
+                <td class="col-sm-1"><i class="fa fa-file"></i></td>
+                <td class="col-sm-3">
+                    {{ row.shortcut | raw }}
+                </td>
+                <td class="col-sm-2">{{ row.size }}</td>
+                <td class="col-sm-2">{{ row.path | raw }}</td>
+                <td class="col-sm-2 d-none d-sm-table-cell">{{ row.created }}</td>
+                <td class="col-sm-2">{{ row.action_buttons | raw }}</td>
+            {% else %}
+                <td class="col-sm-1"><i class="fa fa-folder"></i></td>
+                <td class="col-sm-3">
+                        <a href="" class="stor-shortcuts" data-id="{{ row.shortcut_id }}" data-text="{{ row.shortcut_text }}" data-upload_id="{{ row.upload_id }}" data-upload_module="{{ row.upload_module }}">
+                            <b class="item-title">{{ row.shortcut_title }}</b>
+                        </a>
+                </td>
+                <td class="col-sm-2"></td>
+                <td class="col-sm-2"></td>
+                <td class="col-sm-2 d-none d-sm-table-cell"></td>
+                <td class="col-sm-2"></td>
+            {% endif %}
+            </tr>
+            </script>
+            <script type="text/twig" id="stor_col_twig">
+            {% for row in data %}
+            {% include "stor_obj_twig" %}
+            {% endfor %}
+            </script>
+            {% endverbatim %}
+            
+                          </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+
+
+<div class="modal fade" id="modal-delete-stor" tabindex="-1" role="dialog" data-backdrop="false">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    <i class="fa fa-warning"></i> Alert</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Do you really want to delete this file?</p>
+            </div>
+            <div class="modal-footer">
+                <input type="hidden" id="delete_file_uid" value="" />
+                <button id="pop_stor_delete_button" type="button" class="btn btn-primary" data-dismiss="modal">Yes</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+
+<div class="modal fade" id="modal-edit-stor" tabindex="-1" role="dialog" data-backdrop="false">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="">
+                <input id="edit_file_uid" type="hidden" value="" />
+                <div class="modal-header">
+                    <h4 class="modal-title">Edit file</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div><input style="width: 100%;" id="edit_file_fname" type="text" value="" /></div>
+                </div>
+                <div class="modal-footer">
+                    <button id="pop_stor_change_filename_button" type="button" class="btn btn-primary" data-dismiss="modal">Change filename</button>
+                </div>
+            </form>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+
+<div class="modal fade" id="modal-copy-move-stor" tabindex="-1" role="dialog" data-backdrop="false">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="{{ url_for('stor.item.copy.move') }}">
+                <input type="hidden" name="action_source" value="browser" />
+                <input id="copy_move_file_uid" type="hidden" name="file_id" value="" />
+                <div class="modal-header">
+                    <h4 class="modal-title">Copy or Move File</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div>owner of final copied or moved file</div>
+                    <div><select name="set_new_owner">
+                        <option value="1" selected>let system select</option>
+                        {% if authz.root %}
+                            <option value="2">set me as owner</option>
+                            <option value="3">do not change owner</option>
+                        {% endif %}
+                    </select></div>
+                    <div>target dir:</div>
+                    <div><select id="stor_copy_move_target_dir" name="target_dir">
+                        {{ stor_dirs_options | raw }}
+                    </select></div>
+                    <div>target object id:</div>
+                    <div><select id="stor_copy_move_target_object_id" name="target_object_id"></select></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" name="action_type" value="copy" class="btn btn-primary">Copy</button>
+                    <button type="submit" name="action_type" value="move" class="btn btn-primary">Move</button>
+                </div>
+            </form>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+
+
+
+{% endblock %}
+
+
+{% block additionaljs %}
+<script nonce="{{ csp_nonce.script_src }}" type="text/javascript">
+
+
+    // tuto funkci pouzijeme jen v pripade ze chceme ukladat historii a menit adresu. tj treba ne, kdyz jdeme back a forward a ne kdyz treba uploadujeme
+    function push_filter_state() {
+        var vybrano = $("#stor-files-select2-filter").val() || [];
+        var url_filter = vybrano.join(" ");
+        // prepiseme adresu (strcime tam objekt s obsahem selectu2)
+        if (typeof (history.pushState) != "undefined") {
+            if (url_filter == "") {
+                var new_url = "{{ url_for('stor.browser') }}";
+            }
+            else {
+                var new_url = "{{ url_for('stor.browser') }}?filter=" + url_filter;
+            }
+            history.pushState(vybrano, "", new_url);
+        }
+    }
+    
+    function filter_stor_files(orderby, direction, page) {
+        var vybrano = $("#stor-files-select2-filter").val() || [];
+        var upraveno = JSON.stringify(vybrano);
+        var url_filter = vybrano.join(" ");
+        
+        // osetrime, kdyz nebyly parametry
+        if (arguments.length === 0) {
+            var orderby = "name";
+            var direction = "asc";
+            var page = 1;
+        }
+        
+        // ted to posleme jako zestringovany json
+        
+        $.ajax({
+          url: "{{ url_for('stor.api.filtered.files') }}",
+          type: "GET",
+          dataType: "json",
+          contentType: "application/json",
+          data: { filters: upraveno, orderby: orderby, direction: direction, page: page },
+          success: function(res) {
+            
+            // vypiseme nalezene radky pomoci js plneni twigu
+            $("#stor_files_placeholder").html(Twig.twig({ ref: "stor_col_twig" }).render({ data: res.data }));
+            
+            // doplnime upload_id a upload_module do upload buttonu. mame to v res.meta
+            $("#stor_browser_upload_button").data("id", res.meta.id);
+            $("#stor_browser_upload_button").data("module", res.meta.module);
+            console.log(res.meta);
+            
+            // musime znova inicializovat rozklikavaci ozubena kola na konci radku, coz se normalne dela v app.js pri nacteni stranky
+            var $itemActions = $(".item-actions-dropdown");
+            $(document).on("click",function(e) {
+                if (!$(e.target).closest(".item-actions-dropdown").length) {
+                    $itemActions.removeClass("active");
+                }
+            });
+            $(".item-actions-toggle-btn").on("click",function(e){
+                e.preventDefault();
+                var $thisActionList = $(this).closest(".item-actions-dropdown");
+                $itemActions.not($thisActionList).removeClass("active");
+                $thisActionList.toggleClass("active");
+            });
+            
+            // obecna zkratka na 1 filtr. id a text jsou v atribtu data
+            $(".stor-shortcuts").on("click", function(e){
+                // preventujem link
+                e.preventDefault();
+                // smazeme co tam aktualne je vybrane a nevyvolame event change
+                $("#stor-files-select2-filter").val(null);
+                // nacteme si id a text z data
+                var short_id = $(this).data("id");
+                var short_text = $(this).data("text");
+                
+                if (short_id != "") {
+                    // option se ma pridat, jen pokud uz tam neni, a vyvolame event change
+                    if ($("#stor-files-select2-filter").find("option[value=\'" + short_id + "\']").length) {
+                        $("#stor-files-select2-filter").val(short_id).trigger("change");
+                    } else {
+                        var option = new Option(short_text, short_id, false, true);
+                        $("#stor-files-select2-filter").append(option).trigger("change");
+                    }
+                    
+                    $("#stor-files-select2-filter").trigger({
+                        type: "select2:select",
+                        params: {
+                            data: {"id":short_id, "text":short_text}
+                        }
+                    });
+                }
+                else {
+                    $("#stor-files-select2-filter").trigger("change");
+                }
+            });
+            
+            // dalsi zkratky- pokud by bylo treba nastavit vice filtru naraz, zatim neni treba
+            
+          },
+          error: function(xhr, status, err) {
+            alert("ERROR: xhr status: " + xhr.status + ", status: " + status + ", err: " + err);
+          }
+        });
+    }
+    
+    // callback na otevreni modalu pro smazani souboru
+    $('#modal-delete-stor').on('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        var button = $(event.relatedTarget);
+        // Extract info from data-* attributes
+        var tmp_uid = button.data("uid");
+        // Update the modal's content.
+        $("#delete_file_uid").val(tmp_uid);
+    });
+    
+    // zavolani funkce na smazani souboru pres tlacitko
+    $("#pop_stor_delete_button").on('click', function() {
+        var link_id = $("#delete_file_uid").val();
+        $.ajax({
+          url: "{{ url_for('stor.ajax.delete') }}",  
+          type: "POST",
+          dataType: "text",
+          data: { link_id: link_id },
+          success: function(data) {
+            // vyhodi nekde hlasku
+            console.log(data);
+            // obnovime vypis souboru podle zadaneho filtru
+            filter_stor_files();
+          }
+        });
+    });
+    
+    // callback pro otevreni modalu na zmenu nazvu
+    $('#modal-edit-stor').on('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        var button = $(event.relatedTarget);
+        // Extract info from data-* attributes
+        var tmp_uid = button.data("uid");
+        var tmp_fname = button.data("filename");
+        // Update the modal's content.
+        $("#edit_file_uid").val(tmp_uid);
+        $("#edit_file_fname").val(tmp_fname);
+    });
+    
+    // zavolani funkce na zmenu nazvu souboru pres tlacitko
+    $("#pop_stor_change_filename_button").on('click', function() {
+        var link_id = $("#edit_file_uid").val();
+        var new_fname = $("#edit_file_fname").val();
+        $.ajax({
+          url: "{{ url_for('stor.ajax.update') }}",
+          type: "POST",
+          dataType: "text",
+          data: { link_id: link_id, new_fname: new_fname },
+          success: function(data) {
+            // vyhodi nekde hlasku
+            console.log(data);
+            // obnovime vypis souboru podle zadaneho filtru
+            filter_stor_files();
+          }
+        });
+    });
+    
+    // callback pro otevreni copy move modalu. doplni file uid do formu
+    $('#modal-copy-move-stor').on('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        var button = $(event.relatedTarget);
+        // Extract info from data-* attributes
+        var tmp_uid = button.data("uid");
+        // Update the modal's content.
+        $("#copy_move_file_uid").val(tmp_uid);
+    });
+    
+    // cte existujici objekty do modalu pro copy move
+    function read_modal_objects() {
+        // zjistime si ktery cilovy dir je vybrany v selectu
+        var dirname = $("#stor_copy_move_target_dir").val();
+        
+        $.ajax({
+          url: "{{ url_for('stor.api.modal.objects') }}",  
+          dataType: "text",
+          type: "GET",
+          data: "dirname=" + dirname,
+          success: function(data) {
+            $("#stor_copy_move_target_object_id").html(data);
+          },
+          error: function(xhr, status, err) {
+            alert("ERROR: xhr status: " + xhr.status + ", status: " + status + ", err: " + err);
+          }
+        });
+    }
+
+    //
+    // initialize select2 and the filter button on document ready
+    // 
+
+    $(document).ready(function() {
+        
+        $("#stor-files-select2-filter").select2({
+          tags: true,
+          tokenSeparators: [" "],
+          language: {
+            inputTooShort: function() {
+              return '{{ __("Type to search and filter. Use prefixes: / (apps), # (tags) or @ (users). After filtering an app, use 2nd / to get its files.") }}';
+            }
+          },
+          minimumInputLength: 1,
+          createTag: function (params) {
+            // nevytvaret kdyz to zacina /, #, @
+            if (params.term.indexOf("/") === 0) { return null; }
+            if (params.term.indexOf("@") === 0) { return null; }
+            if (params.term.indexOf("#") === 0) { return null; }
+            return {
+              id: params.term,
+              text: params.term
+            }
+          },
+          width: "100%",
+          ajax: {
+            url: "{{ url_for('stor.api.filter.options') }}",
+            dataType: "json"
+          }
+        });
+        
+        $("#stor-files-filter-button").on("click", function(){
+            filter_stor_files();
+            push_filter_state();
+        });
+        
+        // omezime push, aby se nedelal, kdyz probiha popstate (back, forward button)
+        $("#stor-files-select2-filter").on("change", function(e, delej_push) {
+            filter_stor_files();
+            if (delej_push != "nepush") { push_filter_state(); }
+        });
+        
+        // zavolame to defaultne na prazdny filtr
+        filter_stor_files();
+        // iniciujeme prvotni objekty v copy move modalu
+        read_modal_objects();
+        // priradime onchange event na select v copy move modalu
+        $("#stor_copy_move_target_dir").on("change", function() {
+            read_modal_objects();
+        });
+        
+    });
+
+
+    //
+    // catch clicking the browser's back putton (for pushed adresses in history)
+    //
+
+    $(window).on("popstate", function(e) {
+        if (e.originalEvent.state !== null) {
+            // nacpeme ten stav to do selectu 2 (e.originalEvent.state obsahuje klice selectu oddelene carkou)
+            // protoze jsme stale na stejne strance, ty optiony uz tam jsou
+            var select2klice = e.originalEvent.state.toString().split(",");
+            $("#stor-files-select2-filter").val(select2klice).trigger("change", "nepush");
+        }
+        else {
+            $("#stor-files-select2-filter").val(null).trigger("change", "nepush");
+        }
+    });
+</script>
+
+{% endblock %}
+

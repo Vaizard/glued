@@ -1,0 +1,16 @@
+
+<div class="card card-warning">
+    <div class="card-header">
+        <h4>Add files</h4>
+        <div style="margin-left: auto; display: flex; align-items: center;">
+        <form method="post" action="{{ url_for('stor.uploader') }}" enctype="multipart/form-data">
+            <input type="hidden" name="upload_type" value="browser" />
+            <input type="hidden" name="actual_dir" value="{{uploader_path}}" />
+            <input type="file" name="file" />
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+        </div>
+    </div>
+</div>
+
+{{ vystup | raw }}

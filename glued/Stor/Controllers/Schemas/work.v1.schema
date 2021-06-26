@@ -1,0 +1,144 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/root.json",
+  "type": "object",
+  "title": "Worklog.work schema v1",
+  "required": [
+    "_s",
+    "_v",
+    "id",
+    "user",
+    "date",
+    "time",
+    "summary",
+    "domain",
+    "status"
+  ],
+  "properties": {
+    "_s": {
+      "$id": "#/properties/_s",
+      "type": "string",
+      "title": "Schema name",
+      "default": "worklog/work",
+      "examples": [
+        "worklog/work"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "_v": {
+      "$id": "#/properties/_v",
+      "type": "number",
+      "title": "Schema version",
+      "default": 1,
+      "examples": [
+        "1"
+      ]
+    },
+    "id": {
+      "$id": "#/properties/id",
+      "type": "integer",
+      "title": "ID of work (to be updated from the default 0 value after database insert)",
+      "default": 0,
+      "examples": [
+        "1"
+      ]
+    },
+    "user": {
+      "$id": "#/properties/user",
+      "type": "integer",
+      "title": "User ID who performed the work",
+      "examples": [
+        "1"
+      ]
+    },
+    "date": {
+      "$id": "#/properties/date",
+      "type": "string",
+      "title": "Date at which work was completed",
+      "examples": [
+        "2020-01-08"
+      ],
+      "pattern": "^(.*)$",
+      "format": "date"
+    },
+    "time": {
+      "$id": "#/properties/time",
+      "type": "string",
+      "title": "Time spent on work (hh:mm)",
+      "examples": [
+        "22:22"
+      ],
+      "pattern": "^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"
+    },
+    "summary": {
+      "$id": "#/properties/summary",
+      "type": "string",
+      "title": "Summary of the work done",
+      "examples": [
+        "fdfd"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "domain": {
+      "$id": "#/properties/domain",
+      "type": "integer",
+      "title": "Domain id (think 'team', or 'profit center') which is the recipients of the work",
+      "examples": [
+        "2"
+      ]
+    },
+    "project": {
+      "$id": "#/properties/project",
+      "type": "string",
+      "title": "ID of the project assigned. If no numeric ID given, free text project name can be given.",
+      "default": "",
+      "examples": [
+        "fdf"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "status": {
+      "$id": "#/properties/status",
+      "type": "string",
+      "enum": [
+        "done",
+        "in-progress",
+        "waits"
+      ],
+      "title": "Work status (done = completed, in-progress = partial completion, waits = waits for someone's input)",
+      "examples": [
+        "done"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "finished": {
+      "$id": "#/properties/finished",
+      "type": "string",
+      "title": "Time when work was finished / interrupted (hh:mm)",
+      "examples": [
+        "11:11"
+      ],
+      "default": "",
+      "pattern": "^$|(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"
+    },
+    "cost": {
+      "$id": "#/properties/cost",
+      "type": "string",
+      "title": "Cost of work.",
+      "examples": [
+        "222"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "private": {
+      "$id": "#/properties/private",
+      "type": "boolean",
+      "title": "Set to true when logging work that should be hidden/blacked out from others.",
+      "default": false,
+      "examples": [
+        "true"
+      ]
+    }
+  }
+}

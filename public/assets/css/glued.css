@@ -1,0 +1,27 @@
+/* glued's css override */
+
+label {
+    margin-bottom: 0.2rem;
+}
+
+.glyphicon {
+    display: inline-block;
+    font-family: 'Font Awesome 5 Free';
+    font-style: normal;
+    font-weight: 400;
+    font-display: auto;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.glyphicon-plus:before {
+    font-family: "Font Awesome 5 Free";
+    content: "\f0fe";
+}
+
+.glyphicon-remove:before {
+    font-family: "Font Awesome 5 Free";
+    content: "\f146";
+}

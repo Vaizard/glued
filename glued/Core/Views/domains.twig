@@ -1,0 +1,77 @@
+{% extends '/Core/Views/templates/default.twig' %}
+
+{% block content %}
+        <section class="section">
+          <div class="section-header">
+            <h1>{{ __('Manage domains') }}</h1>
+          </div>
+
+          <div class="section-body">
+            <form action="{{ url_for('core.domains.api01') }}" method="post" autocomplete="off" id="add_domain_form">
+                          <div class="form-row">
+                            <div class="form-group col-md-2">
+                              <label>{{ __('Domain name') }}*</label>
+                              <input type="text" class="form-control" name="name" required>
+                            </div>
+                            <div class="form-group col-md-4">
+                              <label>{{ __('Description') }}*</label>
+                              <input type="text" class="form-control" name="description" required>
+                            </div>
+                            <div class="form-group">
+                              <label class="form-label">{{ __('Users join domain:') }}</label><br>
+                                <div class="form-check form-check-inline">
+                                <div class="selectgroup-item">
+                                  <input type="radio" id="join_rule_auto" name="join_rule" class="selectgroup-input" checked value="auto">
+                                  <label class="selectgroup-button selectgroup-button-icon" for="join_rule_auto">{{ __('Automatically') }}</label>
+                                </div>
+                                <div class="selectgroup-item">
+                                  <input type="radio" id="join_rule_invite" name="join_rule" class="selectgroup-input"  value="invite">
+                                  <label class="selectgroup-button selectgroup-button-icon" for="join_rule_invite">{{ __('By invitation') }}</label>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div class="form-group col-md-1">
+                              <label>&nbsp;</label><br>
+                              <button type="submit" class="btn btn-primary btn-lg">{{ __('Save') }}</button>
+                            </div>
+                          </div>
+
+
+            </form>
+
+            <table class="table table-hover" id="core-accounts-col">
+            <thead>
+            <tr>
+                <th class="col-md-1">uid</th>
+                <th class="col-md-2">ts created</th>
+                <th class="col-md-2">ts updated</th>
+                <th class="col-md-2">name</th>
+                <th class="col-md-3">description</th>
+                <th class="col-md-1">join rule</th>
+                <th class="col-md-1">manage</th>
+            </tr>
+            </thead>
+            {% for domain in domains %}
+            <tr>
+                <td>{{ domain.c_uid }}</td>
+                <td>{{ domain.c_ts_created }}</td>
+                <td>{{ domain.c_ts_updated }}</td>
+                <td><b>{{ domain.c_name }}</b></td>
+                <td>{{ domain.c_json | json_decode . description }}</td>
+                <td>{{ domain.c_json | json_decode . join_rule }}</td>
+                <td><a href="#{{ domain.c_uid }}"><i class="fa fa-trash"></i></a></td>
+            </tr>
+            {% endfor %}
+            </table>
+
+          </div>
+        </section>
+{% endblock %}
+{% block additionaljs %}
+  <script nonce="{{ csp_nonce.script_src }}">
+  $(function(){
+    $("#core-accounts-col").dataTable();
+  });
+  </script>
+{% endblock %}

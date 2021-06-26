@@ -1,0 +1,135 @@
+{% extends '/Core/Views/templates/default.twig' %}
+
+{% block content %}
+
+<div class="section-header">
+  <h1>{{ __('Account settings / ') }} {{ users.c_name }}</h1>
+</div>
+
+<div class="section-body">
+  {% include '/Core/Views/templates/partials/flash.twig' %}
+
+
+  <div class="row">
+
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="card card-warning">
+        <form action="{{ url_for( 'core.settings.password.web',  { 'uid': auth.u_uid } ) }}" method="post" autocomplete="off">
+          <div class="card-header"><h4>{{ __('Change password')}}</h4></div>
+          <div class="card-body pb-0">
+            <div class="form-group {{ validation_errors.password_old ? ' has-error' : ''}}">
+              <label for="password_old">{{ __('Current password') }}</label>
+              <input type="password" name="password_old" id="password_old" class="form-control{{ validation_errors.password_old ? ' is-invalid' : validation_reseed.password_old ? ' is-valid' : '' }}">
+              {% if validation_errors.password_old %}
+              <span class="invalid-feedback">{{ validation_errors.password_old | first }}</span>
+              {% endif %}
+            </div>
+            <div class="form-group">
+              <label for="password">{{ __('Password') }}</label>
+              <input type="password" name="password" id="password" class="form-control{{ validation_errors.password ? ' is-invalid' : '' }}">
+              {% if validation_errors.password %}
+              <span class="invalid-feedback">{{ validation_errors.password | first }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="card-footer">
+            <input type="hidden" name="_METHOD" value="PATCH">
+            <button type="submit" class="btn btn-primary">{{ __('Submit') }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="card card-secondary">
+        <form action="{{ url_for( 'core.settings.password.web',  { 'uid': auth.u_uid } ) }}" method="post" autocomplete="off">
+          <div class="card-header"><h4>{{ __('Modify details')}}</h4></div>
+          <div class="card-body pb-0">
+            <div class="form-group {{ validation_errors.name ? ' has-error' : ''}}">
+              <label for="name">{{ __('Screen name') }}</label>
+              <input type="text" name="name" id="name" class="form-control{{ validation_errors.name ? ' is-invalid' : validation_reseed.name ? ' is-valid' : '' }}" value="{{ authn.u_name }}">
+              <input type="hidden" name="_METHOD" value="PATCH">
+              {% if validation_errors.name %}
+              <span class="invalid-feedback">{{ validation_errors.name | first }}</span>
+              {% endif %}
+            </div>
+            <div class="form-group">
+              <label for="email">{{ __('E-mail') }}</label>
+              <input type="text" name="email" id="email" class="form-control{{ validation_errors.email ? ' is-invalid' : '' }}" value="{{ authn.u_email }}">
+              {% if validation_errors.email %}
+              <span class="invalid-feedback">{{ validation_errors.email | first }}</span>
+              {% endif %}
+            </div>
+            <div class="form-group">
+              <label for="lang">{{ __('Preffered language') }}</label>
+              <input type="select" name="lang" id="lang" class="form-control{{ validation_errors.lang ? ' is-invalid' : '' }}" value="{{ authn.u_lang }}">
+              {% if validation_errors.lang %}
+              <span class="invalid-feedback">{{ validation_errors.lang | first }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="card-footer">
+            <button type="submit" class="btn btn-primary">{{ __('Submit') }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="card card-danger">
+        <form action="{{ url_for( 'core.settings.password.web',  { 'uid': auth.u_uid } ) }}" method="post" autocomplete="off">
+          <div class="card-header"><h4>{{ __('Danger zone')}}</h4></div>
+
+          <div class="card-body pb-0">
+            <div class="form-group">
+              <label for="password_danger">{{ __('Password') }}</label>
+              <input type="password" name="password_danger" id="password_danger" class="form-control{{ validation_errors.password_danger ? ' is-invalid' : '' }}">
+              {% if validation_errors.password_danger %}
+              <span class="invalid-feedback">{{ validation_errors.password_danger | first }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="card-footer">
+            <button type="submit" class="btn btn-danger">{{ __('Delete account') }}</button>
+            <button type="submit" class="btn btn-warning">{{ __('GDPR download') }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="card card-primary">
+        
+        <div class="card-header"><h4>{{ __('Account stats')}}</h4></div>
+
+        <div class="card-body pb-0">
+          <div class="form-group">
+
+            <label>{{ __('User ID') }}</label> {{ users.c_uid }}<br>
+            <label>{{ __('Created') }}</label> {{ users.c_ts_created }}<br>
+            <label>{{ __('Modified') }}</label> {{ users.c_ts_modified }}<br>
+
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+
+
+    <div class="row"> 
+      <br />TODO: list auths, plausible deniability, edit all (relevant) atrributes, limit scope of sub-auths in accounts.read.twig
+    </div>
+
+  </div>
+
+</div>
+
+
+
+
+
+
+</div>
+{% endblock %}

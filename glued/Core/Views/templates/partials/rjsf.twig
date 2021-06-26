@@ -1,0 +1,137 @@
+{% if json_schema_output is defined %}
+
+{{ assets({files: [
+  '@public/assets/node_modules/react/umd/react.production.min.js',
+  '@public/assets/node_modules/react-dom/umd/react-dom.production.min.js',
+  '@public/assets/node_modules/@rjsf/core/dist/react-jsonschema-form.js',
+  '@public/assets/node_modules/@rjsf/bootstrap-4/dist/bootstrap-4.esm.js',
+  '@public/assets/node_modules/@babel/standalone/babel.min.js',
+], name: 'rjsf.js', inline: true, nonce: csp_nonce.script_src }) }}
+
+<script type="text/babel" nonce="{{ csp_nonce.script_src }}">
+    const Form = JSONSchemaForm.default;
+    const uiSchema = {{ json_uischema_output | raw }};
+    const schema = {{ json_schema_output | raw }};
+    const formData = {{ json_formdata_output | raw }};
+
+
+
+    function onSubmit(formData) {
+        {{ json_onsubmit_output | raw }}
+    }
+
+    function onChange(formData) { }
+
+ 
+    {% if json_custom_widgets is defined %}
+    
+    const MyCustomWidget = (props) => {
+      return (
+        <input type="text"
+          className="form-control underlined"
+          value={props.value}
+          required={props.required}
+          onChange={(event) => props.onChange(event.target.value)} />
+      );
+    };
+    const NrGroupWidget = (props) => {
+      return (
+    <div className="input-group input-group-sm">
+        <span className="input-group-addon">{props.options.textik}</span>
+        <input type="text" className="form-control" value={props.value} placeholder={props.placeholder} required={props.required} onChange={(event) => props.onChange(event.target.value)} />
+    </div>
+      );
+    };
+    const DateGroupWidget = (props) => {
+      return (
+    <div className="input-group input-group-sm">
+        <span className="input-group-addon">{props.options.textik}</span>
+        <input type="date" className="form-control" value={props.value} placeholder={props.placeholder} required={props.required} onChange={(event) => props.onChange(event.target.value)} />
+    </div>
+      );
+    };
+    const FloatingLabelWidget = (props) => {
+      return (
+        <input type="text" id={props.id} className="form-control underlined" value={props.value} placeholder={props.placeholder} required={props.required} onChange={(event) => props.onChange(event.target.value)} />
+      );
+    };
+    const widgets = {
+      myCustomWidget: MyCustomWidget,
+      nrGroupWidget: NrGroupWidget,
+      dateGroupWidget: DateGroupWidget,
+      floatingLabelWidget: FloatingLabelWidget
+    };
+    function ArrayFieldTemplate(props) {
+      return (
+        <div className={props.className}>
+          <div className="title-and-add clearfix">
+                <legend>{props.title}</legend>
+                <button onClick={props.onAddClick} type="button" className="btn btn-info btn-oval btn-sm addArrayItemBtn"> + {props.title}</button>
+          </div>
+          {props.items &&
+            props.items.map(element => (
+              <div key={element.index} className="row">
+                <div className="col-md-10">{element.children}</div>
+                <div className="col-md-2">
+                    <button onClick={element.onDropIndexClick(element.index)} className="btn btn-danger btn-sm bottomized">
+                      x
+                    </button>
+                </div>
+              </div>
+            ))}
+        </div>
+      );
+    }
+    ReactDOM.render((<Form onChange={onChange} onSubmit={onSubmit} uiSchema={uiSchema} schema={schema} formData={formData} ArrayFieldTemplate={ArrayFieldTemplate} widgets={widgets} ></Form>),
+        document.getElementById("rjsf"), function() {
+            $(".form-label-group input").focus(function() {
+                $(this).addClass("activated").siblings("label").addClass("labelisima");
+            });
+            $(".form-label-group input").blur(function() {
+                if ($(this).val() == "") {
+                    $(this).removeClass("activated").siblings("label").removeClass("labelisima");
+                }
+            });
+            $(".form-label-group input").each(function() {
+                if ($(this).val() != "") {
+                    $(this).addClass("activated").siblings("label").addClass("labelisima");
+                }
+            });
+            $(".addArrayItemBtn").click(function() {
+                var parrent_array = $(this).closest(".field-array");
+                setTimeout(function() {
+                    
+                    parrent_array.find(".form-label-group input").focus(function() {
+                        $(this).addClass("activated").siblings("label").addClass("labelisima");
+                    });
+                    parrent_array.find(".form-label-group input").blur(function() {
+                        if ($(this).val() == "") {
+                            $(this).removeClass("activated").siblings("label").removeClass("labelisima");
+                        }
+                    });
+                    parrent_array.find(".form-label-group input").each(function() {
+                        if ($(this).val() != "") {
+                            $(this).addClass("activated").siblings("label").addClass("labelisima");
+                        }
+                    });
+                    
+                }, 500);
+            });
+            
+            $(".select2block input.form-control").select2({
+                tags: true
+            });
+            
+    });
+    {% elseif json_custom_structure is defined %}
+    ReactDOM.render((<Form onChange={onChange} onSubmit={onSubmit} uiSchema={uiSchema} schema={schema} formData={formData}></Form>), document.getElementById("rjsf"),
+        function() {
+            $("fieldset#root").addClass("row");
+            $("fieldset#root > .form-group").addClass("col-md-6");
+        });
+    {% else %}
+    ReactDOM.render((<Form onChange={onChange} onSubmit={onSubmit} uiSchema={uiSchema} schema={schema} formData={formData}></Form>), document.getElementById("rjsf"));
+    {% endif %}
+</script>
+
+{% endif %}

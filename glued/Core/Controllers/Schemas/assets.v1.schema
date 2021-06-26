@@ -1,0 +1,101 @@
+{
+  "type": "object",
+  "properties": {
+    "_v": {
+      "type": "integer",
+      "default": 1
+    },
+    "owner": {
+      "type": "string",
+      "title": "Owner",
+      "default": "Industra"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category"
+    },
+    "item_name": {
+      "type": "string",
+      "title": "Item name"
+    },
+    "item_description": {
+      "type": "string",
+      "title": "Item description"
+    },
+    "item_no": {
+      "type": "string",
+      "title": "Item # (SKU / Part #)"
+    },
+    "item_serial": {
+      "type": "string",
+      "title": "Serial #"
+    },
+    "item_lot": {
+      "type": "string",
+      "title": "LOT #"
+    },
+    "item_notes": {
+      "type": "string",
+      "title": "Notes"
+    },
+    "default_location": {
+      "type": "string",
+      "title": "Location"
+    },
+    "warranty": {
+      "type": "string",
+      "title": "Warranty (in months)"
+    },
+    "maintainance_frequency": {
+      "type": "string",
+      "title": "Maintenance frequency (in months)"
+    },
+    "purchase_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Purchase date"
+    },
+    "purchase_cost": {
+      "type": "string",
+      "title": "Purchase cost"
+    },
+    "purchase_currency": {
+      "type": "string",
+      "title": "Purchase currency",
+      "default": "CZK"
+    },
+    "purchase_order": {
+      "type": "string",
+      "title": "Purchase order"
+    },
+    "date_eol": {
+      "type": "string",
+      "format": "date",
+      "title": "Date EOL"
+    },
+    "manufacturer": {
+      "type": "string",
+      "title": "Manufacturer"
+    },
+    "supplier": {
+      "type": "string",
+      "title": "Supplier"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": ["ready", "deployed", "archived", "maintained", "broken/not fixable", "lost/stolen"],
+      "default": "ready"
+    },
+    "requestable": {
+      "type": "boolean",
+      "title": "Requestable"
+    },
+    "ts_created": {
+      "type": "string"
+    },
+    "ts_updated": {
+      "type": "string"
+    }
+  }
+}

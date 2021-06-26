@@ -1,0 +1,26 @@
+{% extends '/Core/Views/templates/default.twig' %}
+
+{% block content %}
+          <div class="section-header">
+            <h1>{{ __('Oops, something failed.') }}</h1>
+          </div>
+          <div class="section-body">
+            {% include '/Core/Views/templates/partials/flash.twig' %}
+            <div class="card card-primary col-4">
+                <div class="card-header">{{ __('Your token is not valid') }}.</div>
+                  <div class="card-body pb-0">
+                        <div class="form-group">
+                            Several things could have gone wrong, but most likely you requested a password reset a long time ago.
+                            Kindly <a href="{{ url_for('core.reset.web') }}">{{ __('start over again') }}</a>.
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                    </div>
+              </div>
+            </div>
+          </div>
+{% endblock %}
+{% block additionaljs %}
+<script nonce="{{ csp_nonce.script_src }}">
+</script>
+{% endblock %}

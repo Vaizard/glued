@@ -1,0 +1,66 @@
+{
+  "_v": {
+    "ui:widget": "hidden"
+  },
+  "owner": {
+    "ui:widget": "hidden"
+  },
+  "category": {
+    "classNames":"form-label-group col-md-4"
+  },  
+  "item_name": {
+    "classNames":"form-label-group col-md-4"
+  },  
+  "item_description": {
+    "ui:widget": "textarea",
+    "classNames":"form-label-group col-md-4"
+  },
+  "item_serial": {
+    "ui:widget": "hidden"
+  },
+  "item_lot": {
+    "ui:widget": "hidden"
+  },
+  "item_notes": {
+    "ui:widget": "textarea"
+  },
+  "warranty": {
+    "ui:widget": "hidden"
+  },
+  "maintainance_frequency": {
+    "ui:widget": "hidden"
+  },
+  "purchase_date": {
+    "ui:widget": "hidden"
+  },
+  "purchase_cost": {
+    "ui:widget": "hidden"
+  },
+  "purchase_currency": {
+    "ui:widget": "hidden"
+  },
+  "purchase_order": {
+    "ui:widget": "hidden"
+  },
+  "date_eol": {
+    "ui:widget": "hidden"
+  },
+  "manufacturer": {
+    "ui:widget": "hidden"
+  },
+  "supplier": {
+    "ui:widget": "hidden"
+  },
+  "status": {
+    "ui:widget": "hidden"
+  },
+  "requestable": {
+    "ui:widget": "hidden"
+  },
+  "ts_created": {
+    "ui:widget": "hidden"
+  },
+  "ts_updated": {
+    "ui:widget": "hidden"
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "name": "vaizard/glued",
+  "description": "A Slim4 router/frontend for API backends. Uses PHP-DI, Nyholm PSR7 and Twig.",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Pavel Stratil",
+      "email": "pavel@vaizard.org"
+    }
+  ],
+  "require": {
+    "php": "^7.4",
+    "ext-bcmath": "*",
+    "ext-curl": "*",
+    "ext-gd": "*",
+    "ext-gmp": "*",
+    "ext-imap": "*",
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "ext-mysqli": "*",
+    "ext-readline": "*",
+    "ext-soap": "*",
+    "ext-xml": "*",
+    "dflydev/fig-cookies": "^2.0",
+    "facile-it/php-openid-client": "dev-master",
+    "foxy/foxy": "^1",
+    "geocoder-php/geoip2-provider": "^4.0",
+    "league/flysystem": "^2",
+    "middlewares/csp": "^3",
+    "middlewares/trailing-slash": "^2",
+    "mohammad-waleed/keycloak-admin-client": "^0",
+    "monolog/monolog": "^2",
+    "nesbot/carbon": "^2",
+    "nyholm/psr7": "^1",
+    "nyholm/psr7-server": "^0.4",
+    "odan/phinx-migrations-generator": "^5",
+    "odan/twig-assets": "^3",
+    "odan/twig-translation": "^3",
+    "opis/json-schema": "^2",
+    "php-di/php-di": "^6",
+    "phpfastcache/phpfastcache": "^8.0",
+    "respect/validation": "^1.1",
+    "robmorgan/phinx": ">0.12",
+    "sabre/event": "^5.1",
+    "slim/flash": "^0.4.0",
+    "slim/http": "^1",
+    "slim/slim": "^4",
+    "slim/twig-view": "^3",
+    "swiftmailer/swiftmailer": "^6",
+    "symfony/yaml": "^5",
+    "thingengineer/mysqli-database-class": "dev-master#42116651a88b57b03fd967bc57dd38f5094565d9",
+    "tuupola/cors-middleware": "^1",
+    "tuupola/slim-jwt-auth": "^3.4.0",
+    "voku/anti-xss": "^4",
+    "zeuxisoo/slim-whoops": "^0.7.2"
+  },
+  "require-dev": {
+    "ergebnis/composer-normalize": "^2.15"
+  },
+  "config": {
+    "foxy": {
+      "manager": "yarn",
+      "manager-options": "--modules-folder=./public/assets/node_modules"
+    },
+    "process-timeout": 0
+  },
+  "extra": {
+    "foxy": true
+  },
+  "autoload": {
+    "psr-4": {
+      "Glued\\": "glued/"
+    },
+    "files": [
+      "glued/Core/Includes/translation.php"
+    ]
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/ThingEngineer/PHP-MySQLi-Database-Class",
+      "no-api": true
+    }
+  ],
+  "minimum-stability": "beta",
+  "prefer-stable": true,
+  "scripts": {
+    "post-install-cmd": [
+      "mkdir -p public/assets/js",
+      "mkdir -p public/assets/css",
+      "mkdir -p public/assets/fonts",
+      "mkdir -p public/assets/img",
+      "mkdir -p public/assets/cache",
+      "mkdir -p config/config.d",
+      "chmod 777 public/assets/cache",
+      "chmod 777 private/cache",
+      "chmod 777 private/data",
+      "chmod 777 private/locale",
+      "chmod -R 777 config/config.d"
+    ],
+    "post-update-cmd": [
+      "mkdir -p public/assets/js",
+      "mkdir -p public/assets/css",
+      "mkdir -p public/assets/fonts",
+      "mkdir -p public/assets/img",
+      "mkdir -p public/assets/cache",
+      "mkdir -p config/config.d",
+      "chmod 777 public/assets/cache",
+      "chmod 777 private/cache",
+      "chmod 777 private/data",
+      "chmod 777 private/locale",
+      "chmod -R 777 config/config.d",
+      "test -n \"$GLUED_IN_DOCKER\" || composer configure < /dev/tty"
+    ],
+    "backup": [
+      "mkdir -p private/backups/db",
+      "mysqldump --lock-tables=false --single-transaction --no-data glued >> ./private/backups/db/`date +'%Y%m%dT%H%M%S'`-composer-schema.sql",
+      "mysqldump --lock-tables=false --single-transaction glued >> ./private/backups/db/`date +'%Y%m%dT%H%M%S'`-composer-full.sql"
+    ],
+    "configure": [
+      "Glued\\Core\\Install\\ComposerHooks::configTool",
+      "composer migrate"
+    ],
+    "migrate": [
+      "php vendor/bin/phinx migrate -e production --configuration=phinx.yml"
+    ],
+    "start": "php -S localhost:8080 -t public"
+  }
+}
