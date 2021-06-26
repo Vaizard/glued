@@ -90,6 +90,9 @@ class AuthController extends AbstractTwigController
         // https://github.com/facile-it/php-openid-client/blob/ef61cfb321bf323c9dcacd466ca609297ed28cfa/src/Service/AuthorizationService.php#L244
 
         // Refresh the token
+        // This fails with `Invalid token provided, The following 
+        // claims are mandatory: at_hash. (0)`, when using just the code response type.
+
         $tokenSet = $authorizationService->refresh($client, $refreshToken);
         die('lala');
     }
