@@ -57,26 +57,43 @@ class AuthController extends AbstractTwigController
 
     public function keycloak_whoami($request, $response) {
         $settings = [];
+        //$settings['login_hint']  = 'user_username';
+        $settings['nonce']         = 'somenonce';
+        $settings['response_mode'] = 'query';
+        $settings['response_type'] = 'code';
         //$settings['response_type'] = 'code id_token token';
-        //$settings['nonce'] = 'somenonce';
+
         $client = $this->oidc_cli;
         $authorizationService = $this->oidc_svc;
         $callbackParams = $authorizationService->getCallbackParams($request, $client, $settings);
+        echo "<b>Callback params</b><br>"; print_r($callbackParams); echo "<br>";
+
+        //die('<br>dada');
+
+        // ISSUE Upon reloading, things fail on the callback with Code not valid (invalid grant)
+        // AHA1 Each authorization code can be used only once, to generate single new access token.
+        // As such, generating multiple access tokens from one code is not possible. 
+
         $tokenSet = $authorizationService->callback($client, $callbackParams);
 
+        $code =  $tokenSet->getCode();
+        $state =  $tokenSet->getState();
+        $type =  $tokenSet->getTokenType();
         $idToken = $tokenSet->getIdToken();           // Unencrypted id_token
         $accessToken = $tokenSet->getAccessToken();   // Access token
         $claims = $tokenSet->claims();                // IdToken claims (if id_token is available)
         $refreshToken = $tokenSet->getRefreshToken(); // Refresh token
         $exp = $tokenSet->getExpiresIn();
 
-        echo "<b>Callback params</b><br>"; print_r($callbackParams); echo "<br>";
         echo "<b>Token set</b><br>";       print_r($tokenSet); echo "<br>";
         echo "<b>Claims</b><br>";          print_r($claims); echo "<br>";
         echo "<b>ID token</b><br>";        print_r($idToken); echo "<br>";
         echo "<b>Access token</b><br>";    print_r($accessToken); echo "<br>";
         echo "<b>Refresh token</b><br>";   print_r($refreshToken); echo "<br>";
         echo "<b>Expires in</b><br>";      print_r($exp); echo "<br>";
+        echo "<b>Code</b><br>";            print_r($code); echo "<br>";
+        echo "<b>Token type</b><br>";      print_r($type); echo "<br>";
+        echo "<b>State</b><br>";           print_r($state); echo "<br>";
 
         // Get user info
         //$userInfoService = (new UserInfoServiceBuilder())->build();
@@ -92,6 +109,7 @@ class AuthController extends AbstractTwigController
         // Refresh the token
         // This fails with `Invalid token provided, The following 
         // claims are mandatory: at_hash. (0)`, when using just the code response type.
+
 
         $tokenSet = $authorizationService->refresh($client, $refreshToken);
         die('lala');
