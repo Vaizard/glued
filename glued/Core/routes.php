@@ -3,6 +3,7 @@ use Geocoder\geocode;
 use Glued\Core\Classes\Utils\Utils;
 use Glued\Core\Controllers\Accounts;
 use Glued\Core\Controllers\AuthController;
+use Glued\Core\Controllers\AdmController;
 use Glued\Core\Controllers\DomainsController as Domains;
 use Glued\Core\Controllers\Glued;
 use Glued\Core\Controllers\GluedApi;
@@ -40,7 +41,8 @@ $app->group('/api/core/v1', function (RouteCollectorProxy $route) {
     $route->group('', function (RouteCollectorProxy $route) {
         $route->get ('/auth/whoami', AuthController::class . ':api_status_get')->setName('core.auth.whaomi.api');
         $route->get ('/auth/extend', AuthController::class . ':api_extend_get')->setName('core.auth.extend.api');
-
+        $route->get ('/adm/healtcheck/fe', AdmController::class . ':fe_healthcheck')->setName('core.adm.healtcheck.fe.api');
+        $route->get ('/adm/healtcheck/be', AdmController::class . ':be_healthcheck')->setName('core.adm.healtcheck.be.api');
     });
 });
 

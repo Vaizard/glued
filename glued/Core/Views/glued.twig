@@ -2,11 +2,17 @@
 
 {% block content %}
           <div class="section-header">
-
             <h1>42</h1>
+          
           </div>
 
           <div class="section-body">
+            <a href="/auth/signup" class="btn btn-primary btn-icon-split md2">Sign up</a>
+            <a href="/auth/signin" class="btn btn-primary btn-icon-split">Sign in</a>
+            <a href="/auth/whoami" class="btn btn-primary btn-icon-split">Whoami</a>
+            <a href="/api/core/v1/adm/healtcheck/fe?greetings=hello&who=world" class="btn btn-primary btn-icon-split">Api front</a>
+            <a href="/api/core/v1/adm/healtcheck/be?greetings=hello&who=world" class="btn btn-primary btn-icon-split">Api back</a>
+            <br><br>
             {{ __('The meaning of life the universe and everything.') }} 
             <div id="rjsf"></div>
             {% include '/Core/Views/templates/partials/flash.twig' %}
