@@ -11,6 +11,7 @@ phinx.yml
 private/api/**
 private/backups/**
 private/cache/**
+private/keys/**
 private/crypto/**
 private/data/**
 private/log/**
