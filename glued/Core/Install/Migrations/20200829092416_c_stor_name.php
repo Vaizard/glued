@@ -112,7 +112,6 @@ class CStorName extends Phinx\Migration\AbstractMigration
             ])
             ->changeColumn('c_uid', 'biginteger', [
                 'null' => false,
-                'limit' => MysqlAdapter::INT_BIG,
                 'identity' => 'enable',
                 'comment' => 'Log row uid',
             ])
