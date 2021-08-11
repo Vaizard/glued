@@ -6,6 +6,7 @@ composer.phar
 coverage
 config/config.d/**
 public/assets/node_modules/**
+public/db/**
 public/assets/cache/**
 phinx.yml
 private/api/**
