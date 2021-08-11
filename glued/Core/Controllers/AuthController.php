@@ -24,7 +24,7 @@ class AuthController extends AbstractTwigController
         echo "<b>"."https://github.com/MohammadWaleed/keycloak-admin-client"."</b>";
         $client = $this->oidc_adm;
         echo "<br><b>".'$client->getUsers()'."</b>";
-        print("<pre>".print_r($client->getUsers(),true)."</pre>");
+        print("<pre>".json_encode($client->getUsers(), JSON_PRETTY_PRINT)."</pre>");
         return $response;
     }
 
@@ -34,6 +34,7 @@ class AuthController extends AbstractTwigController
         $settings['nonce']         = 'somenonce';
         $settings['response_mode'] = 'query';
         $settings['response_type'] = 'code';
+        $settings['scope'] = 'openid';
         //$settings['response_type'] = 'code id_token token';
 
         // ISSUE: Setting response_mode to query lands me on the 
@@ -61,6 +62,7 @@ class AuthController extends AbstractTwigController
         $settings['nonce']         = 'somenonce';
         $settings['response_mode'] = 'query';
         $settings['response_type'] = 'code';
+        $settings['scope'] = 'openid';
         //$settings['response_type'] = 'code id_token token';
 
         $client = $this->oidc_cli;
@@ -100,7 +102,7 @@ class AuthController extends AbstractTwigController
         //$userInfo = $userInfoService->getUserInfo($client, $tokenSet);
         //echo "<b>userInfo</b><br>";   print_r($userInfo); echo "<br>";
 
-        die('<br>lala');
+        die('<br>lalala');
 
 
         // https://github.com/facile-it/php-openid-client/blob/ef61cfb321bf323c9dcacd466ca609297ed28cfa/src/Service/AuthorizationService.php#L214
