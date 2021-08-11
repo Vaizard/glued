@@ -20,7 +20,7 @@
     <div><code>ID token: <span id="idtoken"></span></code></div>
     <div><button id="initiate">Initiate login</button> <button id="simulate200">Simulate normal request</button><button id="simulate401">Simulate expired access token request (should use refresh token to get new one)</button></div>
     <pre><code id="response"></code></pre>
-    <script type="text/javascript" nonce="{{ csp_nonce.script_src }}>
+    <script type="text/javascript" nonce="{{ csp_nonce.script_src }}">
 
         function refreshDemoPage(){
             document.getElementById("refreshtoken").textContent = localStorage.getItem("refresh_token");
@@ -69,7 +69,7 @@
 
     </script>
 
-    <script type="text/javascript" nonce="{{ csp_nonce.script_src }}>
+    <script type="text/javascript" nonce="{{ csp_nonce.script_src }}">
         if(window.location.hostname !== "localhost" && !window.location.protocol.startsWith("https")) {
             alert("Error: This demo only works only on http://localhost or https://<anything>.\n\n Hint: try 'python -m http.server' to launch it quick and dirty from localhost.")
         }
