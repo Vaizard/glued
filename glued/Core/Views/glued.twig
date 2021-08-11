@@ -20,6 +20,17 @@
     <div><code>ID token: <span id="idtoken"></span></code></div>
     <div><button id="initiate">Initiate login</button> <button id="simulate200">Simulate normal request</button><button id="simulate401">Simulate expired access token request (should use refresh token to get new one)</button></div>
     <pre><code id="response"></code></pre>
+
+
+            {{ __('The meaning of life the universe and everything.') }} 
+            <div id="rjsf"></div>
+            {% include '/Core/Views/templates/partials/flash.twig' %}
+            
+          </div>
+{% endblock %}
+
+
+{% block additionaljs %}
     <script type="text/javascript" nonce="{{ csp_nonce.script_src }}">
 
         function refreshDemoPage(){
@@ -76,11 +87,4 @@
     </script>
     <!--https://id.industra.space/auth/realms/T1/.well-known/openid-configuration -->
 
-            {{ __('The meaning of life the universe and everything.') }} 
-            <div id="rjsf"></div>
-            {% include '/Core/Views/templates/partials/flash.twig' %}
-            
-          </div>
 {% endblock %}
-
-
