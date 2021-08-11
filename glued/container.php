@@ -85,6 +85,14 @@ $container->set('fscache', function () {
       return new Psr16Adapter('files');
 });
 
+$container->set('fscache', function () {
+        CacheManager::setDefaultConfig(new Config([
+        "path" => '/var/www/html/glued-skeleton/private/cache/psr16',
+        "itemDetailedDate" => false
+      ]));
+      return new Psr16Adapter('files');
+});
+
 
 $container->set('antixss', function () {
     return new AntiXSS();
@@ -94,15 +102,15 @@ $container->set('goutte', function () {
     return new Goutte\Client();
 });
 
-/*$container->set('flash', function () {
+$container->set('flash', function () {
     return new \Slim\Flash\Messages();
 });
-*/
+
 $container->set('jsonvalidator', function () {
     return new \Opis\JsonSchema\Validator;
 });
 
-$container->set('routerParser', $app->getRouteCollector()->getRouteParser());
+$container->set('routecollector', $app->getRouteCollector());
 
 /**
  * Casbin enforcer
