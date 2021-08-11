@@ -13,6 +13,69 @@
             <a href="/api/core/v1/adm/healtcheck/fe?greetings=hello&who=world" class="btn btn-primary btn-icon-split">Api front</a>
             <a href="/api/core/v1/adm/healtcheck/be?greetings=hello&who=world" class="btn btn-primary btn-icon-split">Api back</a>
             <br><br>
+            <br><br>
+    <h1>Teh JS demo</h1>
+    <div><code>Refresh token: <span id="refreshtoken"></span></code></div>
+    <div><code>Access token: <span id="accesstoken"></span></code></div>
+    <div><code>ID token: <span id="idtoken"></span></code></div>
+    <div><button id="initiate">Initiate login</button> <button id="simulate200">Simulate normal request</button><button id="simulate401">Simulate expired access token request (should use refresh token to get new one)</button></div>
+    <pre><code id="response"></code></pre>
+    <script>
+
+        function refreshDemoPage(){
+            document.getElementById("refreshtoken").textContent = localStorage.getItem("refresh_token");
+            document.getElementById("accesstoken").textContent = localStorage.getItem("access_token");
+            document.getElementById("idtoken").textContent = localStorage.getItem("id_token");
+        }
+
+        window.authenticator = new Authenticator({
+
+            tokenEndpoint: "https://id.industra.space/auth/realms/T1/protocol/openid-connect/token",
+            authorizationEndpoint: "https://id.industra.space/auth/realms/t1/protocol/openid-connect/auth",
+            clientId: "new-client-2"
+        });
+        window.authenticator.checkLogin().then(refreshDemoPage);
+
+
+
+        document.getElementById("initiate").addEventListener("click", () => {
+            authenticator.initiateLogin();
+        });
+
+        async function fetchAndPrintResult(){
+            let response = await authenticator.authenticatedFetch("https://httpbin.org/bearer");
+            if(response.ok){
+                let text = await response.text();
+                document.getElementById("response").textContent = text;
+            } else {
+                alert("Request failed and is not recoverable by refreshing tokens. This is the part, where application decides what to do. (401/403? Redirect to login. 500? Display error to user. And so on)")
+                document.getElementById("response").textContent = "Response code:" + response.status;
+            }
+
+            refreshDemoPage();
+        }
+
+        document.getElementById("simulate200").addEventListener("click", fetchAndPrintResult);
+
+        document.getElementById("simulate401").addEventListener("click", async () => {
+            // Just to make HTTPBin return, in real world scenario, the server would return on expired token.
+            localStorage.removeItem("access_token");
+            refreshDemoPage()
+            await fetchAndPrintResult()
+        });
+
+        refreshDemoPage()
+
+
+    </script>
+
+    <script>
+        if(window.location.hostname !== "localhost" && !window.location.protocol.startsWith("https")) {
+            alert("Error: This demo only works only on http://localhost or https://<anything>.\n\n Hint: try 'python -m http.server' to launch it quick and dirty from localhost.")
+        }
+    </script>
+    <!--https://id.industra.space/auth/realms/T1/.well-known/openid-configuration -->
+
             {{ __('The meaning of life the universe and everything.') }} 
             <div id="rjsf"></div>
             {% include '/Core/Views/templates/partials/flash.twig' %}
