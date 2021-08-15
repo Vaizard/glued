@@ -1,0 +1,31 @@
+{% extends '/Core/Views/templates/default.twig' %}
+
+{% block content %}
+          <div class="section-header">
+            <h1>Reauthenticating</h1>
+          </div>
+            {{ __('The meaning of life the universe and everything.') }} 
+            <div id="rjsf"></div>
+            {% include '/Core/Views/templates/partials/flash.twig' %}
+            
+          </div>
+{% endblock %}
+
+
+
+{% block additionaljs %}
+    <script type="text/javascript" nonce="{{ csp_nonce.script_src }}">
+
+        window.authenticator = new Authenticator({
+            tokenEndpoint: "https://id.industra.space/auth/realms/T1/protocol/openid-connect/token",
+            authorizationEndpoint: "https://id.industra.space/auth/realms/t1/protocol/openid-connect/auth",
+            clientId: "new-client-2",
+            redirectUri: "https://10.146.149.186",
+        });
+
+        authenticator.initiateLogin();
+    </script>
+
+    <!--https://id.industra.space/auth/realms/T1/.well-known/openid-configuration -->
+
+{% endblock %}

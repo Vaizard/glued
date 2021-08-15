@@ -65,7 +65,8 @@ class Glued extends AbstractTwigController
     }
     public function signin(Request $request, Response $response, array $args = []): Response
     {
-        echo 'yay';
-        return $response;
+        return $this->render($response, 'Core/Views/auth.twig', [
+             
+        ]);
     }
 }
