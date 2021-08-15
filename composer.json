@@ -56,7 +56,11 @@
     "tuupola/cors-middleware": "^1",
     "tuupola/slim-jwt-auth": "^3.4.0",
     "voku/anti-xss": "^4",
-    "zeuxisoo/slim-whoops": "^0.7.2"
+    "zeuxisoo/slim-whoops": "^0.7.2",
+    "vstelmakh/url-highlight-twig-extension": "^3.0",
+    "symfony/twig-bridge": "^5.3",
+    "twig/string-extra": "^3.3",
+    "symfony/form": "^5.3"
   },
   "require-dev": {
     "ergebnis/composer-normalize": "^2.15"

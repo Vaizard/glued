@@ -39,6 +39,8 @@ use Facile\OpenIDClient\Issuer\IssuerBuilder;
 use Facile\OpenIDClient\Client\Metadata\ClientMetadata;
 use Facile\OpenIDClient\Service\Builder\AuthorizationServiceBuilder;
 use Facile\OpenIDClient\Service\Builder\UserInfoServiceBuilder;
+use VStelmakh\UrlHighlight\UrlHighlight;
+use VStelmakh\UrlHighlightTwigExtension\UrlHighlightExtension;
 
 $container->set('events', function () {
     return new Emitter();
@@ -112,6 +114,7 @@ $container->set('jsonvalidator', function () {
 
 $container->set('routecollector', $app->getRouteCollector());
 
+
 /**
  * Casbin enforcer
  */
@@ -174,9 +177,16 @@ $container->set('view', function (Container $c) {
     $twig->addExtension(new TwigAssetsExtension($environment, (array)$c->get('settings')['assets']));
     $twig->addExtension(new TwigTranslationExtension($c->get(Translator::class)));
     $twig->addExtension(new \Twig\Extension\DebugExtension());
+    $twig->addExtension(new \Twig\Extra\String\StringExtension());
+    $urlHighlight = new UrlHighlight();
+    $twig->addExtension(new UrlHighlightExtension($urlHighlight));
     $environment->addFilter(new TwigFilter('json_decode', function ($string) {
         return json_decode($string);
     }));
+    $environment->addFilter(new TwigFilter('humanize', function ($string) {
+        return \trim(\strtolower((string) \preg_replace(['/([A-Z])/', \sprintf('/[%s\s]+/', '_')], ['_$1', ' '], $string)));
+    }));
+    
     return $twig;
 });
 

@@ -1,5 +1,21 @@
 {% extends '/Core/Views/templates/default.twig' %}
 
+{% macro list(items = "", class = "") %}
+<ul class="list-group list-group-flush {{class}}">
+   {% if items is iterable %}{% for k,v in items %}
+    <li class="list-group-item list-group-item-action py-1">
+        {% if v is iterable %}
+            <b style="padding-right: 1em;">{{ k | humanize | capitalize }}:</b> {{ _self.list(v) }}
+        {% else %}
+            <b style="padding-right: 1em;">{{ k | humanize | capitalize }}:</b> {{ v }}
+        {% endif %}
+   </li>
+    {% endfor %}{% else %}
+        {{ items }}
+    {% endif %}
+</ul>
+{% endmacro %}
+
 {% block content %}
           <div class="section-header">
             <h1>42</h1>
@@ -19,7 +35,15 @@
     <div><code>Access token: <span id="accesstoken"></span></code></div>
     <div><code>ID token: <span id="idtoken"></span></code></div>
     <div><button id="initiate">Initiate login</button> <button id="simulate200">Simulate normal request</button><button id="simulate401">Simulate expired access token request (should use refresh token to get new one)</button></div>
-    <pre><code id="response"></code></pre>
+    <pre><code id="response"></code></pre><br>
+<br>
+    <h1>Puff</h1>
+    certs {{ _self.list(certs) | urls_to_html }}<br><br>
+    token {{ _self.list(ahdr) | urls_to_html }}<br><br>
+    jwtclaims <pre>{{ jwt_claims | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_SLASHES'))  | urls_to_html }}</pre>
+    jwtheader <pre>{{ jwt_header | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_SLASHES'))  | urls_to_html }}</pre>
+
+
 
 
             {{ __('The meaning of life the universe and everything.') }} 
@@ -28,6 +52,7 @@
             
           </div>
 {% endblock %}
+
 
 
 {% block additionaljs %}
@@ -45,7 +70,9 @@
             authorizationEndpoint: "https://id.industra.space/auth/realms/t1/protocol/openid-connect/auth",
             clientId: "new-client-2"
         });
-        window.authenticator.checkLogin().then(refreshDemoPage);
+        window.authenticator.checkLogin().then(() => {
+	    document.cookie = 'AccessToken=' + localStorage.getItem("access_token") + '; SameSite=Lax; Secure;';
+        }).then(refreshDemoPage);
 
 
 
