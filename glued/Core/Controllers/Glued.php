@@ -34,7 +34,7 @@ class Glued extends AbstractTwigController
 	}
 
         // TODO replace single cert with multiple certs
-        $accesstoken = $_COOKIE['AccessToken'];
+        $accesstoken = $_COOKIE['AccessToken'] ?? '';
         $jwk = new JWK($certs[0]);
         try {
                 $jwt = Load::jws($accesstoken) // We want to load and verify the token in the variable $token
