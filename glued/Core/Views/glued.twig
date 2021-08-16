@@ -70,7 +70,7 @@
             clientId: "new-client-2"
         });
         window.authenticator.checkLogin().then(() => {
-	    document.cookie = 'AccessToken=' + localStorage.getItem("access_token") + '; SameSite=Lax; Secure;';
+	    document.cookie = 'AccessToken=' + localStorage.getItem("access_token") + '; SameSite=Lax; Secure; Path=/;';
         }).then(refreshDemoPage);
 
 

@@ -50,11 +50,11 @@ class Glued extends AbstractTwigController
                     //->jti('0123456789') // Token ID
                     ->key($jwk) // Key used to verify the signature
                     ->run(); // Go!
-                } catch (\Exception $e) {
-                        return $response->withRedirect($this->routecollector->getRouteParser()->urlFor('core.auth.jwtsignin'));
-                        // TODO replace with redir
-                }
-        
+        } catch (\Exception $e) {
+                $en = $this->crypto->encrypt( $request->getUri()->getPath() , $this->settings['crypto']['reqparams'] );
+                return $response->withRedirect($this->routecollector->getRouteParser()->urlFor('core.auth.jwtsignin') .'?'. http_build_query(['caller' => $en]));
+        }
+
         return $this->render($response, 'Core/Views/glued.twig', [
                 'certs' => $certs,
                 'ahdr' => $accesstoken,
@@ -65,8 +65,13 @@ class Glued extends AbstractTwigController
     }
     public function signin(Request $request, Response $response, array $args = []): Response
     {
+        $caller = '';
+        if ($enc = $request->getQueryParam('caller', $default = null)) {
+                $caller = $this->crypto->decrypt( $enc , $this->settings['crypto']['reqparams'] );
+        }
+
         return $this->render($response, 'Core/Views/auth.twig', [
-             
+                'caller' => $caller,
         ]);
     }
 }

@@ -16,14 +16,30 @@
 {% block additionaljs %}
     <script type="text/javascript" nonce="{{ csp_nonce.script_src }}">
 
+
+
         window.authenticator = new Authenticator({
             tokenEndpoint: "https://id.industra.space/auth/realms/T1/protocol/openid-connect/token",
             authorizationEndpoint: "https://id.industra.space/auth/realms/t1/protocol/openid-connect/auth",
             clientId: "new-client-2",
-            redirectUri: "https://10.146.149.186",
+            // redirectUri: "https://10.146.149.186/",
+            
         });
 
-        authenticator.initiateLogin();
+        window.authenticator.checkLogin().then((result) => {
+            if(result.success) {
+                console.log("Consumed query parameters and authenticated successfully. See result bellow!");
+                console.log(result);
+                document.cookie = 'AccessToken=' + localStorage.getItem("access_token") + '; SameSite=Lax; Secure; Path=/;';
+            } else {
+                authenticator.initiateLogin();
+                console.log("There were no query parameters to do authentication with, so the call to checkLogin() was useless...")
+            }
+        });
+        
+
+
+
     </script>
 
     <!--https://id.industra.space/auth/realms/T1/.well-known/openid-configuration -->
