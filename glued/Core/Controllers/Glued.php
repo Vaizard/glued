@@ -72,6 +72,7 @@ class Glued extends AbstractTwigController
 
         return $this->render($response, 'Core/Views/auth.twig', [
                 'caller' => $caller,
+                'hostname' => $this->settings['glued']['hostname'],
         ]);
     }
 }
