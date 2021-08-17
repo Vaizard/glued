@@ -87,13 +87,6 @@ $container->set('fscache', function () {
       return new Psr16Adapter('files');
 });
 
-$container->set('fscache', function () {
-        CacheManager::setDefaultConfig(new Config([
-        "path" => '/var/www/html/glued-skeleton/private/cache/psr16',
-        "itemDetailedDate" => false
-      ]));
-      return new Psr16Adapter('files');
-});
 
 
 $container->set('antixss', function () {

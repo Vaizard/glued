@@ -22,16 +22,49 @@ class Glued extends AbstractTwigController
      */
     public function __invoke(Request $request, Response $response, array $args = []): Response
     {
+        $oidc_conf_uri = 'https://id.industra.space/auth/realms/t1/.well-known/openid-configuration'; // todo lower case!
+        $oidc_conf_iss = 'https://id.industra.space/auth/realms/t1';  // todo lower case!
+        $oidc_conf_key = md5($oidc_conf_uri);
 
-        $conf = $this->utils->fetch_uri('https://id.industra.space/auth/realms/T1/.well-known/openid-configuration');
-        $conf = (array) json_decode($conf);
-        $jwks = $this->utils->fetch_uri($conf['jwks_uri']);
-        $jwks = (array) json_decode($jwks);
-	$certs = [];
-	foreach ($jwks['keys'] as $item) {
-	    $item = (array) $item;
-	    if ($item['use'] === 'sig') $certs[] = $item;
-	}
+        $hit = $this->fscache->has($oidc_conf_key);
+
+        if ($hit) {
+            $json = $this->fscache->get($oidc_conf_key);
+            $conf = (array) json_decode($json);
+            if ($conf['issuer'] != $oidc_conf_iss) $hit = false;
+        }
+
+        if (!$hit) {
+            $json = $this->utils->fetch_uri($oidc_conf_uri); // we don't catch exeptions here because poor mans data validation below
+            $conf = (array) json_decode($json);
+            if ($conf['issuer'] != $oidc_conf_iss) throw new \Exception('Identity backend configuration mismatch');
+            $this->fscache->set($oidc_conf_key, $json, 300); // 5 minutes
+        }
+
+        $oidc_jwks_uri = $conf['jwks_uri']; // todo lower case!
+        $oidc_jwks_iss = 'https://id.industra.space/auth/realms/t1';  // todo lower case!
+        $oidc_jwks_key = md5($oidc_jwks_uri);
+
+        $hit = $this->fscache->has($oidc_jwks_key);
+
+        if ($hit) {
+            $json = $this->fscache->get($oidc_jwks_key);
+            $jwks = (array) json_decode($json);
+            if (!isset($jwks['keys'])) $hit = false;
+        }
+
+        if (!$hit) {
+            $json = $this->utils->fetch_uri($oidc_jwks_uri);
+            $jwks = (array) json_decode($json);
+            if (!isset($jwks['keys'])) throw new \Exception('Identity backend certs mismatch');
+            $this->fscache->set($oidc_jwks_key, $json, 300); // 5 minutes
+        }
+
+    	$certs = [];
+    	foreach ($jwks['keys'] as $item) {
+    	    $item = (array) $item;
+    	    if ($item['use'] === 'sig') $certs[] = $item;
+    	}
 
         // TODO replace single cert with multiple certs
         $accesstoken = $_COOKIE['AccessToken'] ?? '';
@@ -40,8 +73,8 @@ class Glued extends AbstractTwigController
                 $jwt = Load::jws($accesstoken) // We want to load and verify the token in the variable $token
                     ->algs(['RS256', 'RS512']) // The algorithms allowed to be used
                     ->exp() // We check the "exp" claim
-                    //->iat(1000) // We check the "iat" claim. Leeway is 1000ms (1s)
-                    //->nbf() // We check the "nbf" claim
+                    ->iat(1000) // We check the "iat" claim. Leeway is 1000ms (1s)
+                    ->nbf(1000) // We check the "nbf" claim
                     // TODO add proper audience handling
                     //->aud('audience1') // Allowed audience
                     // TODO make configurable
@@ -51,7 +84,7 @@ class Glued extends AbstractTwigController
                     ->key($jwk) // Key used to verify the signature
                     ->run(); // Go!
         } catch (\Exception $e) {
-                $en = $this->crypto->encrypt( $request->getUri()->getPath() , $this->settings['crypto']['reqparams'] );
+                $en = $this->crypto->encrypt($request->getUri()->getPath(), $this->settings['crypto']['reqparams']);
                 return $response->withRedirect($this->routecollector->getRouteParser()->urlFor('core.auth.jwtsignin') .'?'. http_build_query(['caller' => $en]));
         }
 
