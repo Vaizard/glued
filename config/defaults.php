@@ -35,6 +35,7 @@ return [
      * security (i.e. break CSRF protection). See 
      * @link https://scotthelme.co.uk/csrf-is-really-dead/.
      */
+    /*
     'auth' => [
         'cookie' => [
             // Common cookie config for both session and jwt cookies
@@ -82,7 +83,7 @@ return [
             },
         ],
     ],
-
+*/
     // Geoip
     'geoip' => [
         'geoip_engine' => false,    // Providers: [ false, 'maxmind']. Override to 'maxmind' when maxmind license key is set.
@@ -231,9 +232,40 @@ return [
         'content-type-options' => 'nosniff',
         // TODO remove unsafe-eval once odan/twig-assets works with csp
         'csp' => [
-            'script-src' => [ 'self' => true, 'allow' => [  'https://' . ( $_SERVER['SERVER_NAME'] ?? 'cli-run-or-unsupported-webserver' ) ], 'strict-dynamic' => true, 'unsafe-eval' => true ],
+            'script-src' => [ 
+                'self' => true, 
+                'allow' => [  
+                    'https://' . ( $_SERVER['SERVER_NAME'] ?? 'cli-run-or-unsupported-webserver' ), 
+                    'https://id.industra.space' ,
+                    'id.industra.space',
+                ], 
+                'strict-dynamic' => true,
+                'unsafe-eval' => true
+            ],
             'object-src' => [ 'default-src' => 'false' ],
-            'frame-ancestors' => [ 'self' => true, 'allow' => [ 'https://' . ( $_SERVER['SERVER_NAME'] ?? 'cli-run-or-unsupported-webserver' ) ] ],
+            'frame-ancestors' => [ 
+                'self' => true, 
+                'allow' => [ 
+                    'https://' . ( $_SERVER['SERVER_NAME'] ?? 'cli-run-or-unsupported-webserver' ),
+                    'https://id.industra.space',
+                    'id.industra.space',
+                ] 
+            ],
+            'child-ancestors' => [ 
+                'self' => false, 
+                'allow' => [ 
+                    'https://id.industra.space',
+                    'id.industra.space',
+                ] 
+            ],
+            'connect-src' => [ 
+                'self' => true, 
+                'allow' => [ 
+                    'https://' . ( $_SERVER['SERVER_NAME'] ?? 'cli-run-or-unsupported-webserver' ), 
+                    'https://id.industra.space',
+                    'id.industra.space',
+                ] 
+            ],
             'base-uri' => 'self',
             'require-trusted-types-for' => 'script' // TODO not yet supported https://github.com/paragonie/csp-builder/issues/47
         ],

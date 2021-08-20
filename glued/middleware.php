@@ -5,7 +5,7 @@ use Glued\Core\Classes\Error\HtmlErrorRenderer;
 use Glued\Core\Middleware\HeadersMiddleware;
 use Glued\Core\Middleware\LocaleSessionMiddleware;
 use Glued\Core\Middleware\SessionMiddleware;
-use Glued\Core\Middleware\Timer;
+use Glued\Core\Middleware\TimerMiddleware;
 use Glued\Core\Middleware\TranslatorMiddleware;
 use Glued\Core\Middleware\TwigCspMiddleware;
 use Glued\Core\Middleware\TwigFlashMiddleware;
@@ -22,7 +22,7 @@ use Slim\Views\TwigMiddleware;
 use Slim\addRoutingMiddleware;
 use Tuupola\Middleware\CorsMiddleware;
 use Zeuxisoo\Whoops\Slim\WhoopsMiddleware;
-use Facile\OpenIDClient\Middleware\SessionCookieMiddleware;
+//use Facile\OpenIDClient\Middleware\SessionCookieMiddleware;
 
 /**
  * WARNING
@@ -33,70 +33,69 @@ use Facile\OpenIDClient\Middleware\SessionCookieMiddleware;
  * 
  */
 
+// TwigMiddleware provides twig views
 $app->add(TwigMiddleware::createFromContainer($app));
+
+// TranslatorMiddleware provides gettext style po/mo translation to twig. Consumes the `locale`
+// header set by LocaleSessionMiddleware.
 $app->add(TranslatorMiddleware::class);
+
+// LocaleSessionMiddleware injects the `locale` header consumed by TranslatorMiddleware.
+// TODO replace session with jwt data
 $app->add(LocaleSessionMiddleware::class);
-$app->add(Timer::class); // adds time needed to generate a response to headers
+
+// TimerMiddleware injects the time needed to generate the response.
+$app->add(TimerMiddleware::class);
+
+// BodyParsingMiddleware detects the content-type and automatically decodes
+// json, x-www-form-urlencoded and xml decodes the $request->getBody() 
+// properti into a php array and places it into $request->getParsedBody(). 
+// See https://www.slimframework.com/docs/v4/middleware/body-parsing.html
 $app->addBodyParsingMiddleware();
 
-
-
- // BodyParsingMiddleware detects content-type set to a JSON or XML media type
- // and automatically decodes getBody() into a php array and places the decoded body
- // into the Request’s parsed body property.
+// RoutingMiddleware provides the FastRoute router. See
+// https://www.slimframework.com/docs/v4/middleware/routing.html
 $app->addRoutingMiddleware();
 
-
-
-/**
- * *******************************
- * TRAILING SLASH MIDDLEWARE
- * *******************************
- * 
- * TrailingSlash(false) means trailing slash is disabled (i.e. https://example.com/user)
- * redirect(true) enforces a 301 redirect from https://example.com/user/ to https://example.com/user
- */
+// TrailingSlash(false) removes the trailing from requests, for example
+// `https://example.com/user/` will change into https://example.com/user.
+// Optionally, setting redirect(true) enforces a 301 redirect.
 $trailingSlash = new TrailingSlash(false);
 $trailingSlash->redirect();
 $app->add($trailingSlash);
 
-$app->add(\Glued\Core\Middleware\ValidationFormsMiddleware::class);
-
-// TODO: consider joining the TwigFlashMilldeware, TwigCSPMilldeware
-// and AuthMiddleware into a single middleware TwigGlobalsMiddleware.
-// We're only setting twig globals in all three so, why not, eh?
-//$app->add(new \Glued\Core\Middleware\TwigFlashMiddleware($container)); 
-
+// The Csp middleware injects csp headers as defined in
+// $settings['headers']['csp']. It also provides the $nonce array
+// which is consumed by the TwigCspMiddleware.
 $csp = new CSPBuilder($settings['headers']['csp']);
 $nonce['script_src'] = $csp->nonce('script-src');
 $nonce['style_src'] = $csp->nonce('style-src');
 $app->add(new Middlewares\Csp($csp));
+
+// TwigCspMiddleware makes the $nonce variable provided by the CspBuilder
+// above and sets it as a global variable accessible in all twig views.
 $app->add(new \Glued\Core\Middleware\TwigCspMiddleware($nonce, $container));
-$app->add(new Tuupola\Middleware\CorsMiddleware); // TODO add sane defaults to CorsMiddleware
-$app->add(new HeadersMiddleware($settings));
+
+// AuthorizationMiddleware takes care of user authentication and authorization. 
 $app->add(new \Glued\Core\Middleware\AuthorizationMiddleware($container));
-//$app->add(new SessionMiddleware($settings));
-$app->add(new SessionCookieMiddleware($container->get('fscache')/* , $cookieName = "openid", $ttl = 300 */));
-$app->add(new Tuupola\Middleware\JwtAuthentication($settings['auth']['jwt']));
+
+// The CorsMiddleware injects `Access-Control-*` response headers and acts
+// accordingly. TODO configure CorsMiddleware
+$app->add(new Tuupola\Middleware\CorsMiddleware);
+
+// HeadersMiddleware injects the Feature-Policy, X-Content-Type-Options and
+// Referrer-Policy headers.
+$app->add(new HeadersMiddleware($settings));
 
 
 
-
-/**
- * *******************************
- * METHOD OVERRIDE MIDDLEWARE
- * *******************************
- *
- * Per the HTML standard, desktop browsers will only submit GET and POST requests, PUT
- * and DELETE requests will be handled as GET. This is middleware allows desktop browsers
- * to submit pseudo PUT and DELETE requests by relying on pre-determined request 
- * parameters (either a `X-Http-Method-Override` header, or a `_METHOD` form value) 
- * allowing routing unification. 
- * 
- * This middleware must be added last must be added before `$app->addRoutingMiddleware();`
- */
-
-$app->add(new MethodOverrideMiddleware); // Add this before `$app->addRoutingMiddleware();`
+// Per the HTML standard, desktop browsers will only submit GET and POST requests, PUT
+// and DELETE requests will be handled as GET. MethodOverrideMiddleware allows browsers
+// to submit pseudo PUT and DELETE requests by relying on pre-determined request 
+// parameters, either a `X-Http-Method-Override` header, or a `_METHOD` form value
+// and behave as a propper API client. This middleware must be added before 
+// $app->addRoutingMiddleware().
+$app->add(new MethodOverrideMiddleware);
 
 /**
  * *******************************
