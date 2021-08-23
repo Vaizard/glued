@@ -34,8 +34,6 @@
     "monolog/monolog": "^2",
     "nesbot/carbon": "^2",
     "nyholm/psr7": "^1",
-    "nyholm/psr7-server": "^0.4",
-    "odan/phinx-migrations-generator": "^5",
     "odan/twig-assets": "^3",
     "odan/twig-translation": "^3",
     "opis/json-schema": "^2",
@@ -45,7 +43,6 @@
     "phpfastcache/phpfastcache": "^8.0",
     "respect/validation": "^1.1",
     "sabre/event": "^5.1",
-    "slim/flash": "^0.4.0",
     "slim/http": "^1",
     "slim/slim": "^4",
     "slim/twig-view": "^3",
@@ -58,7 +55,8 @@
     "zeuxisoo/slim-whoops": "^0.7.2",
     "vstelmakh/url-highlight-twig-extension": "^3.0",
     "symfony/twig-bridge": "^5.3",
-    "twig/string-extra": "^3.3"
+    "twig/string-extra": "^3.3",
+    "symfony/config": "^5.3"
   },
   "require-dev": {
     "ergebnis/composer-normalize": "^2.15"
