@@ -39,7 +39,6 @@ $app->group('/api/core/v1', function (RouteCollectorProxy $route) {
     // Everyone or Guests-only
     $route->group('', function (RouteCollectorProxy $route) {
         $route->get ('/auth/whoami', ProxyController::class . ':api_status_get')->setName('core.auth.whaomi.api');
-        $route->get ('/auth/extend', ProxyController::class . ':api_extend_get')->setName('core.auth.extend.api');
         $route->get ('/adm/healtcheck/fe', ProxyController::class . ':fe_healthcheck')->setName('core.adm.healtcheck.fe.api');
         $route->get ('/adm/healtcheck/be', ProxyController::class . ':be_healthcheck')->setName('core.adm.healtcheck.be.api');
         $route->get ('/adm/routes', AdmController::class . ':routes')->setName('core.adm.routes');
