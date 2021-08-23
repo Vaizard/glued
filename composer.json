@@ -44,7 +44,6 @@
     "php-http/message": "^1",
     "phpfastcache/phpfastcache": "^8.0",
     "respect/validation": "^1.1",
-    "robmorgan/phinx": ">0.12",
     "sabre/event": "^5.1",
     "slim/flash": "^0.4.0",
     "slim/http": "^1",
@@ -59,8 +58,7 @@
     "zeuxisoo/slim-whoops": "^0.7.2",
     "vstelmakh/url-highlight-twig-extension": "^3.0",
     "symfony/twig-bridge": "^5.3",
-    "twig/string-extra": "^3.3",
-    "symfony/form": "^5.3"
+    "twig/string-extra": "^3.3"
   },
   "require-dev": {
     "ergebnis/composer-normalize": "^2.15"
@@ -139,7 +137,7 @@
       "composer migrate"
     ],
     "migrate": [
-      "php vendor/bin/phinx migrate -e production --configuration=phinx.yml"
+      "dbmate -d './glued/Core/Install/Migrations' -s './private/install/schema.sql' migrate"
     ],
     "start": "php -S localhost:8080 -t public"
   }

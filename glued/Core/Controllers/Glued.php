@@ -8,8 +8,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Glued\Core\Classes\Users;
 use Glued\Core\Classes\Utils;
-use Jose\Component\Core\JWK;
-use Jose\Easy\Load;
+
 
 class Glued extends AbstractTwigController
 {
@@ -22,6 +21,8 @@ class Glued extends AbstractTwigController
      */
     public function __invoke(Request $request, Response $response, array $args = []): Response
     {
+
+//INSERT INTO t VALUES(UUID_TO_BIN(UUID(), true));”
 
         return $this->render($response, 'Core/Views/glued.twig', [
 /*                'certs' => $certs,

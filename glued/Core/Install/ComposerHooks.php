@@ -31,7 +31,7 @@ class ComposerHooks
         $fn['privkey']       = getcwd().'/private/keys/private.key';
         $fn['pubkey']        = getcwd().'/private/keys/public.key';
         $fn['geoip.city']    = getcwd().'/private/data/core/maxmind-geolite2-city.mmdb.tar.gz';
-        $fn['phinx']         = getcwd().'/phinx.yml';
+        $fn['env']         = getcwd().'/.env.example';
         $fn['avl']           = getcwd().'/config/available/';
         $fn['cfg']           = getcwd().'/config/config.d/';
         $fn['cfg.db']               = '10_db.php';
@@ -44,7 +44,7 @@ class ComposerHooks
 
 
         // get settings interactively
-        if ( !file_exists($fn['phinx']) or !file_exists($fn['cfg'].$fn['cfg.db']) ) {
+        if ( !file_exists($fn['env']) or !file_exists($fn['cfg'].$fn['cfg.db']) ) {
           $ioresp['dbhost'] = $io->ask(">>> Mysql database host [localhost]: ", "localhost");
           $ioresp['dbname'] = $io->ask(">>> Mysql database name [glued]: ", "glued");
           $ioresp['dbuser'] = $io->ask(">>> Mysql database user [glued]: ", "glued");
@@ -55,7 +55,7 @@ class ComposerHooks
         }
         
         // sanity check
-        if ( !file_exists($fn['phinx']) or !file_exists($fn['cfg'].$fn['cfg.db']) ) {
+        if ( !file_exists($fn['env']) or !file_exists($fn['cfg'].$fn['cfg.db']) ) {
           echo "*** Testing MySQL connection ..." . PHP_EOL;
           $link = mysqli_connect($ioresp['dbhost'], $ioresp['dbuser'], $ioresp['dbpass'], $ioresp['dbname']);
           if (!$link) {
@@ -80,15 +80,14 @@ class ComposerHooks
           exec("openssl rsa -in ".$fn['privkey']." -pubout -out ".$fn['pubkey']);
         }
 
-        if ( !file_exists($fn['phinx']) ) {
-          echo "*** Generating phinx.yml ..." . PHP_EOL;
-          $str=file_get_contents(getcwd().'/phinx.dist.yml');
+        if ( !file_exists($fn['env']) ) {
+          echo "*** Generating .env ..." . PHP_EOL;
+          $str=file_get_contents(getcwd().'/.env');
           $str=str_replace("db_host", $ioresp['dbhost'], $str);
-          $str=str_replace("production_db", $ioresp['dbname'], $str);
+          $str=str_replace("db_name", $ioresp['dbname'], $str);
           $str=str_replace("db_user", $ioresp['dbuser'], $str);
           $str=str_replace("db_pass", $ioresp['dbpass'], $str);
-          file_put_contents($fn['phinx'], $str);
-          exec("php vendor/bin/phinx test -e production");
+          file_put_contents($fn['env'], $str);
         }
 
         $fragment = $fn['cfg.db'];

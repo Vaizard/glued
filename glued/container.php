@@ -41,6 +41,9 @@ use Facile\OpenIDClient\Service\Builder\AuthorizationServiceBuilder;
 use Facile\OpenIDClient\Service\Builder\UserInfoServiceBuilder;
 use VStelmakh\UrlHighlight\UrlHighlight;
 use VStelmakh\UrlHighlightTwigExtension\UrlHighlightExtension;
+use Keiko\Uuid\Shortener\Dictionary;
+use Keiko\Uuid\Shortener\Shortener;
+
 
 $container->set('events', function () {
     return new Emitter();
@@ -87,6 +90,20 @@ $container->set('fscache', function () {
       return new Psr16Adapter('files');
 });
 
+
+$container->set('uuid_base62', function () {
+    $shortener = Shortener::make(
+        Dictionary::createAlphanumeric() // or pass your own characters set
+    );
+    return $shortener;
+});
+
+$container->set('uuid_base57', function () {
+    $shortener = Shortener::make(
+        Dictionary::createUnmistakable() // or pass your own characters set
+    );
+    return $shortener;
+});
 
 
 $container->set('antixss', function () {
