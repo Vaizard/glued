@@ -62,6 +62,11 @@ class Glued extends AbstractTwigController
         return $this->render($response, 'Core/Views/auth.twig', [
                 'caller' => $caller,
                 'hostname' => $this->settings['glued']['hostname'],
+                'oidc_token' => $this->settings['oidc']['uri']['token'],
+                'oidc_auth' => $this->settings['oidc']['uri']['auth'],
+                'oidc_client' => $this->settings['oidc']['client']['public']['id'],
+                'oidc_cookie_name' => $this->settings['oidc']['cookie']['name'],
+                'oidc_cookie_params' => $this->settings['oidc']['cookie']['params'],
         ]);
     }
 }

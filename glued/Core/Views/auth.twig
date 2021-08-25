@@ -1,46 +1,118 @@
-{% extends '/Core/Views/templates/default.twig' %}
+{% autoescape %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" name="viewport">
+  <title>{{ __('Reauthenticating') }}...</title>
+</head>
+<style>
+body {
+    background: #595BD4;
+    font-family: 'Arial', sans-serif;
+}
+.loading {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    width: 100px;
+    color: #FFF;
+    margin: auto;
+    -webkit-transform: translateY(-50%);
+    -moz-transform: translateY(-50%);
+    -o-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+.loading span {
+    position: absolute;
+    height: 10px;
+    width: 84px;
+    top: 50px;
+    overflow: hidden;
+}
+.loading span > i {
+    position: absolute;
+    height: 4px;
+    width: 4px;
+    border-radius: 50%;
+    -webkit-animation: wait 4s infinite;
+    -moz-animation: wait 4s infinite;
+    -o-animation: wait 4s infinite;
+    animation: wait 4s infinite;
+}
+.loading span > i:nth-of-type(1) {
+    left: -28px;
+    background: yellow;
+}
+.loading span > i:nth-of-type(2) {
+    left: -21px;
+    -webkit-animation-delay: 0.8s;
+    animation-delay: 0.8s;
+    background: lightgreen;
+}
 
+@-webkit-keyframes wait {
+    0%   { left: -7px  }
+    30%  { left: 52px  }
+    60%  { left: 22px  }
+    100% { left: 100px }
+}
+@-moz-keyframes wait {
+    0%   { left: -7px  }
+    30%  { left: 52px  }
+    60%  { left: 22px  }
+    100% { left: 100px }
+}
+@-o-keyframes wait {
+    0%   { left: -7px  }
+    30%  { left: 52px  }
+    60%  { left: 22px  }
+    100% { left: 100px }
+}
+@keyframes wait {
+    0%   { left: -7px  }
+    30%  { left: 52px  }
+    60%  { left: 22px  }
+    100% { left: 100px }
+}
+</style>
+<body>
+
+  {{ assets({files: [
+    '@public/assets/js/auth.js'
+    ], name: 'glued-auth.js', nonce: csp_nonce.script_src}) }}
 {% block content %}
-          <div class="section-header">
-            <h1>Reauthenticating</h1>
-          </div>
-            {{ __('The meaning of life the universe and everything.') }} 
-            <div id="rjsf"></div>
-            {% include '/Core/Views/templates/partials/flash.twig' %}
-            
-          </div>
+
+    <div class="loading">
+        <p>{{ __("Please wait") }}</p>
+        <span><i></i><i></i></span>
+    </div>
+
 {% endblock %}
-
-
 
 {% block additionaljs %}
     <script type="text/javascript" nonce="{{ csp_nonce.script_src }}">
 
-
-
         window.authenticator = new Authenticator({
-            tokenEndpoint: "https://id.industra.space/auth/realms/T1/protocol/openid-connect/token",
-            authorizationEndpoint: "https://id.industra.space/auth/realms/t1/protocol/openid-connect/auth",
-            clientId: "new-client-2"
+            tokenEndpoint: "{{ oidc_token }}",
+            authorizationEndpoint: "{{ oidc_auth }}",
+            clientId: "{{ oidc_client }}",
         });
 
         window.authenticator.checkLogin().then((result) => {
             if(result.success) {
                 console.log("Consumed query parameters and authenticated successfully. See result bellow!");
                 console.log(result);
-                document.cookie = 'AccessToken=' + localStorage.getItem("access_token") + '; SameSite=Lax; Secure; Path=/;';
+                document.cookie = '{{ oidc_cookie_name }}=' + localStorage.getItem("access_token") + '; {{ oidc_cookie_params }}';
                 window.location = "https://{{ hostname }}{{ caller }}"
             } else {
                 authenticator.initiateLogin();
                 console.log("There were no query parameters to do authentication with, so the call to checkLogin() was useless...")
             }
         });
-        
-
-
-
     </script>
-
-    <!--https://id.industra.space/auth/realms/T1/.well-known/openid-configuration -->
-
 {% endblock %}
+</body>
+</html>
+{% endautoescape %}

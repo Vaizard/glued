@@ -148,9 +148,9 @@ $container->set('oidc_adm', function (Container $c) {
     $client = \Keycloak\Admin\KeycloakClient::factory([
         'baseUri'   => $s['server'],
         'realm'     => $s['realm'],
-        'client_id' => $s['admin']['client'],
-        'username'  => $s['admin']['user'],
-        'password'  => $s['admin']['pass']
+        'client_id' => $s['client']['admin']['id'],
+        'username'  => $s['client']['admin']['user'],
+        'password'  => $s['client']['admin']['pass']
     ]);
     return $client;
 });
@@ -159,8 +159,8 @@ $container->set('oidc_cli', function (Container $c) {
     $s = $c->get('settings')['oidc'];
     $issuer = (new IssuerBuilder())->build($s['uri']['discovery']);
     $clientMetadata = ClientMetadata::fromArray([
-        'client_id'     => $s['auth']['client'],
-        'client_secret' => $s['auth']['secret'],
+        'client_id'     => $s['client']['confidential']['id'],
+        'client_secret' => $s['client']['confidential']['secret'],
         'token_endpoint_auth_method' => 'client_secret_basic', // the auth method to the token endpoint
         'redirect_uris' => $s['uri']['redirect']
     ]);
