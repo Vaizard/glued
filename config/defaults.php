@@ -133,7 +133,7 @@ return [
     'curl' => [
         CURLOPT_CONNECTTIMEOUT => 2,
         CURLOPT_RETURNTRANSFER => 1,
-        CURLOPT_USERAGENT => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:81.0) Gecko/20100101 Firefox/81.0',
+        CURLOPT_USERAGENT => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:81.0) Gecko/20100101 Firefox/91.0',
         CURLOPT_COOKIEJAR => __ROOT__.'/private/cache/cookies.txt',
         CURLOPT_COOKIEFILE => __ROOT__.'/private/cache/cookies.txt',
         CURLOPT_POST => 0,
