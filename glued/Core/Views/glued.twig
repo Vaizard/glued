@@ -39,10 +39,9 @@
 <br>
     <h1>Puff</h1>
     core-users {{ core_users }}<br><br>
-    certs {{ _self.list(certs) | urls_to_html }}<br><br>
-    token {{ _self.list(ahdr) | urls_to_html }}<br><br>
     jwtclaims <pre>{{ jwt_claims | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_SLASHES'))  | urls_to_html }}</pre>
     jwtheader <pre>{{ jwt_header | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_SLASHES'))  | urls_to_html }}</pre>
+    {# jwtheader {{ _self.list(jwt_header)  | urls_to_html }} #}
 
 
 
