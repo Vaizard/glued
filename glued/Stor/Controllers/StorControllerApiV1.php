@@ -318,10 +318,8 @@ class StorControllerApiV1 extends AbstractTwigController
     // fukce co vypise prehled filtrovanych souboru v adresari
     public function showFilteredFiles($request, $response)
     {
-        $vystup = '';
-        $stor_rows = array();
-        $uploader = '';
-        $bude_uploader = false;
+
+        $stor_rows = [];
         $upload_module = '';
         $upload_id = '';
         
@@ -329,36 +327,22 @@ class StorControllerApiV1 extends AbstractTwigController
         $app_dirs = $this->stor->app_dirs;
         $app_tables = $this->stor->app_tables;
         
-        $raw_filters = $request->getParam('filters');
-        $orderby = $request->getParam('orderby');
+        $filters   = json_decode($request->getParam('filters'), true);
+        $orderby   = $request->getParam('orderby');
         $direction = $request->getParam('direction');
-        $page = $request->getParam('page');
-        
-        // dekodujeme na pole
-        $filters = json_decode($raw_filters, true);
-        
-        // vrsek vzdy
-        // kvuli tomu, ze tu mame dropdown, ktery muze sahat mimo tabulku, dame tam defaultni overflow-x: visible; ktere prebije csskove auto
-        // a min width ma responsive table 800px ale to je tady zbytecne moc. prebijeme to 400px
-        
-        // drive byly nadpisy vyuzite i na trideni, je mozne doplnit
-        // onclick="filter_stor_files(\'name\', \''.(($orderby == 'name' and $direction == 'asc')?'desc':'asc').'\', 1);"
-        // onclick="filter_stor_files(\'size\', \''.(($orderby == 'size' and $direction == 'asc')?'desc':'asc').'\', 1);"
-        // onclick="filter_stor_files(\'uploaded\', \''.(($orderby == 'uploaded' and $direction == 'asc')?'desc':'asc').'\', 1);"
-        
+        $page      = $request->getParam('page');
         
         // zanalyzujeme si co mame zadane ($filters)
         if (count($filters) > 0) {
-            $je_tam_apps = false;
-            $jsou_tam_objekty = false;
+            $fiter_has_apps = false;
+            $fiter_has_objs = false;
             $objektovy_dir = '';
-            $pole_adresaru = array();
-            $pole_useru = array();
-            $pole_tagu = array();
-            $pole_nazvu = array();
-            
-            
+            $pole_adresaru = [];
+            $pole_useru    = [];
+            $pole_tagu     = [];
+            $pole_nazvu    = [];
             $uploader_path = '';
+
             
             foreach ($filters as $filter) {
                 
@@ -368,7 +352,7 @@ class StorControllerApiV1 extends AbstractTwigController
                 
                 // nejdriv detekujeme pritomnost apps //
                 if ($filter == '//') {
-                    $je_tam_apps = true;
+                    $fiter_has_apps = true;
                 }
                 // lomitkovy filtr by mel byt jen jeden, pokud bude vic, vezmeme jen prvni (a nebo to muzeme vzit jako or?)
                 else if ($prvni_znak == '/') {
@@ -377,7 +361,7 @@ class StorControllerApiV1 extends AbstractTwigController
                     foreach ($app_dirs as $dir => $description) {
                         if (!isset($app_tables[$dir])) { continue; }
                         if ($filter == '/'.$dir.'/') {
-                            $jsou_tam_objekty = true;
+                            $fiter_has_objs = true;
                             $objektovy_dir = $dir;
                         }
                     }
@@ -397,7 +381,7 @@ class StorControllerApiV1 extends AbstractTwigController
             }
             
             // pokud je tam apps, vypiseme jen apps
-            if ($je_tam_apps) {
+            if ($fiter_has_apps) {
                 // zpet do rootu
                 $stor_rows[] = $this->firstRowUplinkBrowser('', '');
                 foreach ($app_dirs as $dir => $description) {
@@ -411,7 +395,7 @@ class StorControllerApiV1 extends AbstractTwigController
                     );
                 }
             }
-            else if ($jsou_tam_objekty) {   // to znamena ze jsme v jedne app a vypisujeme jeji objekty. tady nakonec bude taky aktivni upload souboru do null objektu
+            else if ($fiter_has_objs) {   // to znamena ze jsme v jedne app a vypisujeme jeji objekty. tady nakonec bude taky aktivni upload souboru do null objektu
                 // nejdriv zpet do app
                 $stor_rows[] = $this->firstRowUplinkBrowser('//', '//apps');
                 // nacteme idecka
@@ -528,7 +512,6 @@ class StorControllerApiV1 extends AbstractTwigController
                     if (!empty($casti[2])) {
                         $this->db->where("c_inherit_object", $casti[2]);
                         // je tam adresar i objekt, muzeme ukazat uploadovaci form
-                        $bude_uploader = true;
                         $uploader_path = $casti[1].'/'.$casti[2];
                         
                         // pokud je tam jen jeden adresar a jeden objekt, muzeme uploadovat a nastavime si potrebne promenne
@@ -644,7 +627,8 @@ class StorControllerApiV1 extends AbstractTwigController
             }
         }
         else {  // jsme v zakladnim vyberu my files a app
-            $your_user_id = $GLOBALS['_GLUED']['authn']['user_id'];
+            $your_user_id = $request->getAttribute('auth-sub'); 
+
             //$your_screenname = $this->container->auth->user_screenname($your_user_id);
             $your_screenname = 'noob';
             
@@ -664,10 +648,8 @@ class StorControllerApiV1 extends AbstractTwigController
             
         }
         
-        // debug
-        //$vystup .= __('Filtrer json').': '.$raw_filters.', orderby: '.$orderby.', direction: '.$direction.', page: '.$page;
-        
-        $meta_data = array();
+       
+        $meta_data = [];
         $meta_data['module'] = $upload_module;
         $meta_data['id'] = $upload_id;
         
@@ -679,7 +661,6 @@ class StorControllerApiV1 extends AbstractTwigController
     
     // mazani ajaxem
     public function ajaxDelete($request, $response) {
-        $vystup = '';
         
         $link_id = $request->getParam('link_id');
         
@@ -696,8 +677,7 @@ class StorControllerApiV1 extends AbstractTwigController
     
     // prejmenovani ajaxem. nebudeme na to delat zvlastni funkci ve tride, je to jednoduche
     public function ajaxUpdate($request, $response) {
-        $vystup = '';
-        
+       
         $link_id = $request->getParam('link_id');
         $new_fname = $request->getParam('new_fname');
         
