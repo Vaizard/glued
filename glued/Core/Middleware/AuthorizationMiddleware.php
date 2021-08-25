@@ -16,6 +16,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 use Twig\TwigFunction;
 use Glued\Core\Classes\Utils;
 use Jose\Component\Core\JWK;
+use Jose\Component\Core\JWKSet;
 use Jose\Easy\Load;
 
 
@@ -26,134 +27,126 @@ use Jose\Easy\Load;
 /**
  * Deals with RBAC/ABAC
  */
-final class AuthorizationMiddleware extends AbstractMiddleware implements MiddlewareInterface
+final class AuthorizationMiddleware extends AbstractMiddleware implements MiddlewareInterface {
 
-{
+    /**
+     * Gets current jwks signing keys from identity server by
+     * - querying the well_known discovery endpoint for the jwks endpoint
+     * - querying the jwks endpoint for current keys
+     * - filtering current keys for `sig` keys and returning these
+     * To improve performance, queries to the identity server endpoints are
+     * cached.
+     * 
+     * @return  array   Array of Jose\Component\Core\JWK objects.
+     */
+    private function get_jwks(): array {
 
-    private function merge_authn(ServerRequestInterface $request) {
-
-
-
-        /*$ses = $_SESSION ?? null;
-        $jwt = $request->getAttribute($this->settings['auth']['jwt']['attribute']) ?? null;
-
-        $isvalid = true;
-        $user_id = null;
-        $auth_id = null;
-
-        if (is_array($jwt) and !empty($jwt)) {
-            $user_id = $jwt['g_uid'] ?? null;
-            $auth_id = $jwt['g_aid'] ?? null;
-        }
-        if (is_array($ses) and !empty($ses)) {
-            $user_id = $ses['core_user_id'] ?? null;
-            $auth_id = $ses['core_auth_id'] ?? null;
-        }
-        if (is_array($jwt) and !empty($jwt) and is_array($ses) and !empty($ses)) {
-            if (($ses['core_user_id'] ?? null) !== ($jwt['g_uid'] ?? null)) $user_id = null; 
-            if (($ses['core_auth_id'] ?? null) !== ($jwt['g_uid'] ?? null)) $user_id = null;
-        }
-
-        if (!(v::intVal()->positive()->between(1, 4294967295)->validate($user_id))) $isvalid = false;
-        if (!(v::intVal()->positive()->between(1, 4294967295)->validate($auth_id))) $isvalid = false;
-
-        if ($isvalid === true) {
-            $GLOBALS['_JWT'] = $jwt;
-            $GLOBALS['_GLUED']['authn'] = [
-                'success' => null,
-                'user_id' => $user_id,
-                'auth_id' => $auth_id,
-                'object'  => null
-            ];
-        }*/
-    }
-
-
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
-    {
-        // Set global variables used everywhere
-        $this->merge_authn($request);
-
-
-        
-        $oidc_conf_uri = 'https://id.industra.space/auth/realms/t1/.well-known/openid-configuration'; // todo lower case!
-        $oidc_conf_iss = 'https://id.industra.space/auth/realms/t1';  // todo lower case!
-        $oidc_conf_key = md5($oidc_conf_uri);
-
-        $hit = $this->fscache->has($oidc_conf_key);
-
+        $oidc = $this->settings['oidc'];
+        $hit = $this->fscache->has('glued_oidc_uri_discovery');
         if ($hit) {
-            $json = $this->fscache->get($oidc_conf_key);
-            $conf = (array) json_decode($json);
-            if ($conf['issuer'] != $oidc_conf_iss) $hit = false;
+            $conf = (array) json_decode($this->fscache->get('glued_oidc_uri_discovery'));
+            if ($conf['issuer'] != $oidc['uri']['realm']) $hit = false;
         }
 
         if (!$hit) {
-            $json = $this->utils->fetch_uri($oidc_conf_uri); // we don't catch exeptions here because poor mans data validation below
+            $json = $this->utils->fetch_uri($oidc['uri']['discovery']);
             $conf = (array) json_decode($json);
-            if ($conf['issuer'] != $oidc_conf_iss) throw new \Exception('Identity backend configuration mismatch');
-            $this->fscache->set($oidc_conf_key, $json, 300); // 5 minutes
+            if ($conf['issuer'] != $oidc['uri']['realm']) throw new \Exception('Identity backend configuration mismatch');
+            $this->fscache->set('glued_oidc_uri_discovery', $json, 300); // 5 minutes
         }
 
-        $oidc_jwks_uri = $conf['jwks_uri']; // todo lower case!
-        $oidc_jwks_iss = 'https://id.industra.space/auth/realms/t1';  // todo lower case!
-        $oidc_jwks_key = md5($oidc_jwks_uri);
-
-        $hit = $this->fscache->has($oidc_jwks_key);
-
+        $hit = $this->fscache->has('glued_oidc_uri_jwks');
         if ($hit) {
-            $json = $this->fscache->get($oidc_jwks_key);
-            $jwks = (array) json_decode($json);
+            $conf = (array) json_decode($this->fscache->get('glued_oidc_uri_jwks'));
             if (!isset($jwks['keys'])) $hit = false;
         }
 
         if (!$hit) {
-            $json = $this->utils->fetch_uri($oidc_jwks_uri);
+            $json = $this->utils->fetch_uri($oidc['uri']['jwks']);
             $jwks = (array) json_decode($json);
             if (!isset($jwks['keys'])) throw new \Exception('Identity backend certs mismatch');
-            $this->fscache->set($oidc_jwks_key, $json, 300); // 5 minutes
+            $this->fscache->set('glued_oidc_uri_jwks', $json, 300); // 5 minutes
         }
 
         $certs = [];
         foreach ($jwks['keys'] as $item) {
             $item = (array) $item;
-            if ($item['use'] === 'sig') $certs[] = $item;
+            if ($item['use'] === 'sig') $certs[] = new JWK($item);
         }
+        return $certs;
+    }
 
-        // TODO replace single cert with multiple certs
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        $oidc = $this->settings['oidc'];
+        $certs = $this->get_jwks($oidc);
         $accesstoken = $_COOKIE['AccessToken'] ?? '';
-        $jwk = new JWK($certs[0]);
+
         try {
-            $jwt = Load::jws($accesstoken) // We want to load and verify the token in the variable $token
-                ->algs(['RS256', 'RS512']) // The algorithms allowed to be used
-                ->exp() // We check the "exp" claim
-                ->iat(1000) // We check the "iat" claim. Leeway is 1000ms (1s)
-                ->nbf(1000) // We check the "nbf" claim
-                // TODO add proper audience handling
-                //->aud('audience1') // Allowed audience
-                // TODO make configurable
-                ->iss('https://id.industra.space/auth/realms/t1') // Allowed issuer
-                //->sub() // Allowed subject
-                //->jti('0123456789') // Token ID
-                ->key($jwk) // Key used to verify the signature
-                ->run(); // Go!
-            $this->view->getEnvironment()->addGlobal('certs', $certs);
+
+            $jwt = Load::jws($accesstoken)   // Load and verify the token in $accesstoken
+                ->algs(['RS256', 'RS512'])   // Check if allowed The algorithms are used
+                ->exp()                      // Check if "exp" claim is present
+                ->iat(1000)                  // Check if "iat" claim is present and within 1000ms leeway
+                ->nbf(1000)                  // Check if "nbf" claim is present and within 1000ms leeway
+                ->iss($oidc['uri']['realm']) // Check if "nbf" claim is present and matches the realm
+                ->keyset(new JWKSet($certs)) // Key used to verify the signature
+                ->run();                     // Do it.
+            $claims = $jwt->claims->all() ?? [];
+
+            $this->view->getEnvironment()->addGlobal('certs', json_decode(json_encode($certs), true));
             $this->view->getEnvironment()->addGlobal('ahdr', $accesstoken);
             $this->view->getEnvironment()->addGlobal('jwt_claims', $jwt->claims->all() ?? []);
             $this->view->getEnvironment()->addGlobal('jwt_header', $jwt->header->all() ?? []);        
 
-            // TODO check validify of sub, email, etc.
-            // TODO create profile and set attrs
-            // TODO handle race conditions and db errors.
+            
+            $filter = [ 'sub', 'email', 'preferred_username', 'website', 'groups', 'given_name', 'family_name', 'name', 'locale' ];
+            $claims = array_intersect_key($jwt->claims->all() ?? [], array_flip($filter)); 
 
-            $data = [
-               "c_uuid" => $this->db->func( 'uuid_to_bin(?, true)', [ $jwt->claims->all()['sub'] ] ),
-               "c_email" => $jwt->claims->all()['email'],
-               "c_nick" => $jwt->claims->all()['preferred_username']
+            // TODO join with events table
+            $this->db->where('c_uuid = uuid_to_bin(?, true)', [ $claims['sub'] ?? '' ]);
+            $t_core_users = $this->db->get('t_core_users', null);
+            
+
+
+            //print_r($data); die();
+
+            //$shadow_json = json_encode($shadow);
+            //$shadow_hash = md5($shadow_json);
+
+            //$profile['email'][] = $shadow['email'];
+            // profi
+            // TODO store data somewhere
+            // TODO shadow profile with validity
+/*
+            if ($claims['sub']) $data["c_uuid"] = $this->db->func('uuid_to_bin(?, true)', [$claims['sub']])
+            if ($claims['email']) $data["c_email"] = $claims['email'];
+            if ($claims['preferred_username']) $data["c_nick"] = $claims['preferred_username'];
+            if ($claims['email']) $data["c_email"] = $claims['email'];
+
             ];
             if ($this->db->insert('t_core_users', $data)) $respond = 'Welcome';
             else $respond = 'Hello again';
             $this->view->getEnvironment()->addGlobal('core_users', $respond);        
+*/
+/*
+    "name": "Pavel Stratl",
+    "groups": [
+        "/art",
+        "/art/bily-dum",
+        "/stage"
+    ],
+    "preferred_username": "x",
+    "given_name": "Pavel",
+    "locale": "en",
+    "family_name": "Stratl",
+    "email": "pavel@industra.space"
+*/
+
+            // TODO check validify of sub, email, etc.
+            // TODO create profile and set attrs
+            // TODO handle race conditions and db errors.
 
 
         } catch (\Exception $e) {
@@ -163,8 +156,7 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
                 }
             }
 
-        
-
+        //if (isset($shadow['sub'])) $request = $request->withAttribute('auth-sub', $shadow['sub']);
         return $handler->handle($request);
     }
 }
