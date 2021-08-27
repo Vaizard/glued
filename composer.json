@@ -56,7 +56,8 @@
     "vstelmakh/url-highlight-twig-extension": "^3.0",
     "symfony/twig-bridge": "^5.3",
     "twig/string-extra": "^3.3",
-    "symfony/config": "^5.3"
+    "symfony/config": "^5.3",
+    "selective/transformer": "^1.0"
   },
   "require-dev": {
     "ergebnis/composer-normalize": "^2.15"

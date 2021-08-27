@@ -44,7 +44,7 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
         $oidc = $this->settings['oidc'];
         $hit = $this->fscache->has('glued_oidc_uri_discovery');
         if ($hit) {
-            $conf = (array) json_decode($this->fscache->get('glued_oidc_uri_discovery'));
+            $conf = (array) json_decode($this->fscache->get('glued_oidc_uri_discovery') ?? []);
             if ($conf['issuer'] != $oidc['uri']['realm']) $hit = false;
         }
 
@@ -57,7 +57,7 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
 
         $hit = $this->fscache->has('glued_oidc_uri_jwks');
         if ($hit) {
-            $conf = (array) json_decode($this->fscache->get('glued_oidc_uri_jwks'));
+            $conf = (array) json_decode($this->fscache->get('glued_oidc_uri_jwks') ?? []);
             if (!isset($jwks['keys'])) $hit = false;
         }
 
@@ -76,13 +76,40 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
         return $certs;
     }
 
+    private function fetch_token($request) {
 
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
-    {
+        // Check for token in header.
+        $header = $request->getHeaderLine($this->settings['oidc']["header"]);
+        if (false === empty($header)) {
+            if (preg_match($this->settings['oidc']["regexp"], $header, $matches)) {
+                //$this->log(LogLevel::DEBUG, "Using token from request header");
+                return $matches[1];
+            }
+        }
+
+        // Token not found in header, try the cookie.
+        $cookieParams = $request->getCookieParams();
+
+        if (isset($cookieParams[$this->settings['oidc']['cookie']])) {
+            //$this->log(LogLevel::DEBUG, "Using token from cookie");
+            if (preg_match($this->settings['oidc']["regexp"], $cookieParams[$this->settings['oidc']['cookie']], $matches)) {
+                return $matches[1];
+            }
+            return $cookieParams[$this->settings['oidc']["cookie"]];
+        };
+
+        // If everything fails log and throw.
+        //$this->log(LogLevel::WARNING, "Token not found");
+        //throw new Exception("Token not found.");
+    }
+
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface {
+
         // Get oidc config, jwk signing keys and the access token
         $oidc = $this->settings['oidc'];
         $certs = $this->get_jwks($oidc);
-        $accesstoken = $_COOKIE['AccessToken'] ?? '';
+        $accesstoken = $this->fetch_token($request);
 
         // Authenticate user. Exceptions (i.e. invalid jwt, database 
         // errors etc.) are handled by the catch below.
@@ -97,45 +124,47 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
                 ->keyset(new JWKSet($certs)) // Key used to verify the signature
                 ->run();                     // Do it.
 
-            $filter = [ 'sub', 'email', 'preferred_username', 'website', 'groups', 'given_name', 'family_name', 'name', 'locale' ];
-            $claims = array_intersect_key($jwt->claims->all() ?? [], array_flip($filter)); 
+            $jwt_claims = $jwt->claims->all() ?? [];
+            $jwt_header = $jwt->header->all() ?? [];
 
             // TODO join with events table
-            $this->db->where('c_uuid = uuid_to_bin(?, true)', [ $claims['sub'] ?? '' ]);
+            $this->db->where('c_uuid = uuid_to_bin(?, true)', [ $jwt_claims['sub'] ?? '' ]);
             $t_core_users = $this->db->getOne('t_core_users', null);
+
             if ($t_core_users) {
                 // TODO join the query above with a table containing scheduled events,
                 // periodically update profile data according to identity server.
             } else {
-                $profile['kind']['natural'] = 1;
-                $profile['name'][0]['fn'] = $claims['name'];
-                $profile['name'][0]['given'] = $claims['given_name'];
-                $profile['name'][0]['family'] = $claims['family_name'];
-                $profile['name'][0]['@']['src'] = $oidc['uri']['realm'];
-                $profile['email'][0]['uri'] = $claims['email'];
-                $profile['email'][0]['@']['src'] = $oidc['uri']['realm'];
-                $profile['email'][0]['@']['pref'] = 1;
-                $profile['service'][0]['kind']   = 'oidc';
-                $profile['service'][0]['uri']    = $oidc['uri']['realm'];
-                $profile['service'][0]['handle'] = $claims['preferred_username'];
-                $profile['website'][0]['uri']    = $claims['website'];
-                $account['locale'] = $claims['locale'];
+
+                $account['locale'] = $this->utils->default_locale($jwt_claims['locale'] ?? 'en') ?? 'en_US';
+
+                $profile = $this->transform
+                    ->map('name.0.fn',          'name')
+                    ->map('name.0.given',       'given_name')
+                    ->map('name.0.family',      'family_name')
+                    ->map('name.0.@.src',       'iss')
+                    ->map('email.0.uri',        'email')
+                    ->map('email.0.@.src',      'iss')
+                    ->map('email.0.@.pref',     '===', $this->transform->rule()->default(1))
+                    ->map('service.0.kind',     '===', $this->transform->rule()->default('oidc'))
+                    ->map('service.0.uri',      'iss')
+                    ->map('service.0.handle',   'preferred_username')
+                    ->map('website.0.uri',      'website')
+                    ->toArray($jwt_claims) ?? [];
+
                 // log do shadow profile log table
-                // a udelat zapis do profile a accoiunts tables
-                // TODO create profile
                 // TODO shadow profile
-            if ($claims['sub']) $data["c_uuid"] = $this->db->func('uuid_to_bin(?, true)', [$claims['sub']]);
-            if ($claims['email']) $data["c_email"] = $claims['email'];
-            if ($claims['preferred_username']) $data["c_nick"] = $claims['preferred_username'];
-            if ($claims['email']) $data["c_email"] = $claims['email'];
-
-            
-            //if ($this->db->insert('t_core_users', $data)) $respond = 'Welcome';
-            //else $respond = 'Hello again';
-            //$this->view->getEnvironment()->addGlobal('core_users', $respond);        
-
+                if ($jwt_claims['sub'])  {
+                    $data["c_uuid"]     = $this->db->func('uuid_to_bin(?, true)', [$jwt_claims['sub']]);
+                    $data["c_profile"]  = json_encode($profile);
+                    $data["c_account"]  = json_encode($account);
+                    $data["c_email"]  = $jwt_claims['emaild'] ?? 'NULL';
+                    $data["c_nick"]  = $jwt_claims['preferred_username'] ?? 'NULL';
+                    $this->db->insert('t_core_users', $data);
+                } 
             }
-            
+
+
             // Pass jwt data to twig
             $this->view->getEnvironment()->addGlobal('jwt_claims', $jwt->claims->all() ?? []);
             $this->view->getEnvironment()->addGlobal('jwt_header', $jwt->header->all() ?? []);        
