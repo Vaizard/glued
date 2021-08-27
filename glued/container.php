@@ -43,6 +43,7 @@ use VStelmakh\UrlHighlight\UrlHighlight;
 use VStelmakh\UrlHighlightTwigExtension\UrlHighlightExtension;
 use Keiko\Uuid\Shortener\Dictionary;
 use Keiko\Uuid\Shortener\Shortener;
+use Selective\Transformer\ArrayTransformer;
 
 
 $container->set('events', function () {
@@ -90,6 +91,9 @@ $container->set('fscache', function () {
       return new Psr16Adapter('files');
 });
 
+$container->set('transform', function () {
+    return new ArrayTransformer();
+});
 
 $container->set('uuid_base62', function () {
     $shortener = Shortener::make(
@@ -112,10 +116,6 @@ $container->set('antixss', function () {
 
 $container->set('goutte', function () {
     return new Goutte\Client();
-});
-
-$container->set('flash', function () {
-    return new \Slim\Flash\Messages();
 });
 
 $container->set('jsonvalidator', function () {

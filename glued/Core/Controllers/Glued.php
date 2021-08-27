@@ -65,8 +65,8 @@ class Glued extends AbstractTwigController
                 'oidc_token' => $this->settings['oidc']['uri']['token'],
                 'oidc_auth' => $this->settings['oidc']['uri']['auth'],
                 'oidc_client' => $this->settings['oidc']['client']['public']['id'],
-                'oidc_cookie_name' => $this->settings['oidc']['cookie']['name'],
-                'oidc_cookie_params' => $this->settings['oidc']['cookie']['params'],
+                'oidc_cookie_name' => $this->settings['oidc']['cookie'],
+                'oidc_cookie_params' => $this->settings['oidc']['cookie_params'],
         ]);
     }
 }
