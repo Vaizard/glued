@@ -21,6 +21,10 @@ use Jose\Easy\Load;
 
 
 
+class TokenException extends \Exception {}
+class DbException extends \Exception {}
+class JwtException extends \Exception {}
+class TransformException extends \Exception {}
 
 
 
@@ -100,36 +104,39 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
 
         // If everything fails log and throw.
         //$this->log(LogLevel::WARNING, "Token not found");
-        //throw new Exception("Token not found.");
+        throw new TokenException("Token not found.");
     }
 
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface {
 
-        // Get oidc config, jwk signing keys and the access token
-        $oidc = $this->settings['oidc'];
-        $certs = $this->get_jwks($oidc);
-        $accesstoken = $this->fetch_token($request);
-
-        // Authenticate user. Exceptions (i.e. invalid jwt, database 
-        // errors etc.) are handled by the catch below.
         try {
-            
-            $jwt = Load::jws($accesstoken)   // Load and verify the token in $accesstoken
-                ->algs(['RS256', 'RS512'])   // Check if allowed The algorithms are used
-                ->exp()                      // Check if "exp" claim is present
-                ->iat(1000)                  // Check if "iat" claim is present and within 1000ms leeway
-                ->nbf(1000)                  // Check if "nbf" claim is present and within 1000ms leeway
-                ->iss($oidc['uri']['realm']) // Check if "nbf" claim is present and matches the realm
-                ->keyset(new JWKSet($certs)) // Key used to verify the signature
-                ->run();                     // Do it.
+            // Get oidc config, jwk signing keys and the access token
+            $oidc = $this->settings['oidc'];
+            $certs = $this->get_jwks($oidc);
+            $accesstoken = $this->fetch_token($request);
+          
+            // Authenticate user. Exceptions (i.e. invalid jwt, database 
+            // errors etc.) are handled by the catch below.
+        
+            try {
+                $jwt = Load::jws($accesstoken)   // Load and verify the token in $accesstoken
+                    ->algs(['RS256', 'RS512'])   // Check if allowed The algorithms are used
+                    ->exp()                      // Check if "exp" claim is present
+                    ->iat(1000)                  // Check if "iat" claim is present and within 1000ms leeway
+                    ->nbf(1000)                  // Check if "nbf" claim is present and within 1000ms leeway
+                    ->iss($oidc['uri']['realm']) // Check if "nbf" claim is present and matches the realm
+                    ->keyset(new JWKSet($certs)) // Key used to verify the signature
+                    ->run();                     // Do it.
+                $jwt_claims = $jwt->claims->all() ?? [];
+                $jwt_header = $jwt->header->all() ?? [];
+            } catch (\Exception $e) { throw new JwtException($e->getMessage(), $e->getCode(), $e); }
 
-            $jwt_claims = $jwt->claims->all() ?? [];
-            $jwt_header = $jwt->header->all() ?? [];
-
-            // TODO join with events table
-            $this->db->where('c_uuid = uuid_to_bin(?, true)', [ $jwt_claims['sub'] ?? '' ]);
-            $t_core_users = $this->db->getOne('t_core_users', null);
+            try {
+                // TODO join with events table
+                $this->db->where('c_uuid = uuid_to_bin(?, true)', [ $jwt_claims['sub'] ?? '' ]);
+                $t_core_users = $this->db->getOne('t_core_users', null);
+            } catch (\Exception $e) { throw new DbException($e->getMessage(), $e->getCode(), $e); }
 
             if ($t_core_users) {
                 // TODO join the query above with a table containing scheduled events,
@@ -138,6 +145,7 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
 
                 $account['locale'] = $this->utils->default_locale($jwt_claims['locale'] ?? 'en') ?? 'en_US';
 
+            try {
                 $profile = $this->transform
                     ->map('name.0.fn',          'name')
                     ->map('name.0.given',       'given_name')
@@ -151,6 +159,7 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
                     ->map('service.0.handle',   'preferred_username')
                     ->map('website.0.uri',      'website')
                     ->toArray($jwt_claims) ?? [];
+            } catch (\Exception $e) { throw new TransformException($e->getMessage(), $e->getCode(), $e); }
 
                 // log do shadow profile log table
                 // TODO shadow profile
@@ -164,39 +173,26 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
                 } 
             }
 
-
             // Pass jwt data to twig
             $this->view->getEnvironment()->addGlobal('jwt_claims', $jwt->claims->all() ?? []);
-            $this->view->getEnvironment()->addGlobal('jwt_header', $jwt->header->all() ?? []);        
-
-
-/*
-    "name": "Pavel Stratl",
-    "groups": [
-        "/art",
-        "/art/bily-dum",
-        "/stage"
-    ],
-    "preferred_username": "x",
-    "given_name": "Pavel",
-    "locale": "en",
-    "family_name": "Stratl",
-    "email": "pavel@industra.space"
-*/
+            $this->view->getEnvironment()->addGlobal('jwt_header', $jwt->header->all() ?? []);
 
             // TODO check validify of sub, email, etc.
             // TODO create profile and set attrs
             // TODO handle race conditions and db errors.
 
-
-        } catch (\Exception $e) {
-                // Jwt exception
-                if ($request->getUri()->getPath() != $this->routecollector->getRouteParser()->urlFor('core.auth.jwtsignin')) {
-                    $en = $this->crypto->encrypt($request->getUri()->getPath(), $this->settings['crypto']['reqparams']);
-                    return $handler->handle($request)->withRedirect($this->routecollector->getRouteParser()->urlFor('core.auth.jwtsignin') .'?'. http_build_query(['caller' => $en]));
-                }
-                // TODO Sql exception handling
+        } 
+        catch (JwtException | TokenException $e) {
+            if ($request->getUri()->getPath() != $this->routecollector->getRouteParser()->urlFor('core.auth.jwtsignin')) {
+                $en = $this->crypto->encrypt($request->getUri()->getPath(), $this->settings['crypto']['reqparams']);
+                return $handler->handle($request)->withRedirect($this->routecollector->getRouteParser()->urlFor('core.auth.jwtsignin') .'?'. http_build_query(['caller' => $en]));
             }
+        }
+        catch (DbException $e) { echo $e->getMessage(); die(); }
+        catch (TransformException $e) { echo $e->getMessage(); die(); }
+        catch (\Exception $e) { echo $e->getMessage(); die(); }
+
+
 
         //if (isset($shadow['sub'])) $request = $request->withAttribute('auth-sub', $shadow['sub']);
         return $handler->handle($request);

@@ -8,7 +8,7 @@ CREATE TABLE `t_core_users` (
   `c_account` json DEFAULT NULL COMMENT 'Account settings',
   `c_attr` json DEFAULT NULL COMMENT 'Account attributes and state (enabled/disabled, GDPR anonymised, etc.)',
   `c_email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Primary email',
-  `c_lang` char(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'en_US' COMMENT 'Preferred locale',
+  `c_locale` char(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'en_US' COMMENT 'Preferred locale',
   `c_nick` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Nickname',
   `c_ts_created` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp: account created',
   `c_ts_modified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Timestamp: account modified',

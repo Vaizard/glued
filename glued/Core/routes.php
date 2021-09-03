@@ -18,6 +18,7 @@ $app->get ('/auth/signin',  AuthController::class . ':keycloak_signin')->setName
 $app->get ('/auth/signout', AuthController::class . ':keycloak_signout')->setName('core.auth.signout');
 $app->get ('/auth/signup', AuthController::class . ':keycloak_signup')->setName('core.auth.signup');
 $app->get ('/auth/whoami',  AuthController::class . ':keycloak_whoami')->setName('core.auth.whoami');
+$app->get ('/auth/enforce',  AuthController::class . ':enforcer');
 
 
 $app->group('', function (RouteCollectorProxy $route) {

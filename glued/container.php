@@ -3,6 +3,7 @@
 use Alcohol\ISO4217;
 use CasbinAdapter\Database\Adapter as DatabaseAdapter;
 use Casbin\Enforcer;
+use \Casbin\Util\BuiltinOperations;
 use DI\Container;
 use Glued\Core\Classes\Auth\Auth;
 use Glued\Core\Classes\Utils\Utils;
@@ -131,6 +132,7 @@ $container->set('routecollector', $app->getRouteCollector());
 $container->set('enforcer', function (Container $c) {
     $s = $c->get('settings');
     $adapter = __ROOT__ . '/private/cache/casbin.csv';
+    /*
     if ($s['casbin']['adapter'] == 'database')
         $adapter = DatabaseAdapter::newAdapter([
             'type'     => 'mysql',
@@ -139,8 +141,16 @@ $container->set('enforcer', function (Container $c) {
             'username' => $s['db']['username'],
             'password' => $s['db']['password'],
             'hostport' => '3306',
-        ]);
-    return new Enforcer($s['casbin']['modelconf'], $adapter);
+        ]);*/
+    $e = new Enforcer($s['casbin']['modelconf'], $adapter);
+
+    $e->addNamedMatchingFunc('g', 'keyMatch2', function (string $key1, string $key2) {
+        return BuiltinOperations::keyMatch2($key1, $key2);
+    });
+    $e->addNamedDomainMatchingFunc('g', 'keyMatch2', function (string $key1, string $key2) {
+        return BuiltinOperations::keyMatch2($key1, $key2);
+    });
+    return $e;
 });
 
 $container->set('oidc_adm', function (Container $c) {
@@ -247,7 +257,12 @@ $container->set('validator', function (Container $c) {
 });
 
 $container->set('auth', function (Container $c) {
-    return new Auth($c->get('settings'), $c->get('db'), $c->get('logger'), $c->get('events'));
+    return new Auth($c->get('settings'), 
+                    $c->get('db'), 
+                    $c->get('logger'), 
+                    $c->get('events'),
+                    $c->get('enforcer'),
+                );
 });
 
 $container->set('utils', function (Container $c) {

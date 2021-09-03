@@ -191,4 +191,62 @@ class AuthController extends AbstractTwigController
     }
 
 
+    public function enforcer(Request $request, Response $response, array $args = []): Response {
+
+        function pprint($d1, $d2 = "") {
+            if (is_array($d1) or is_object($d1))  { print("<pre>".print_r($d1,true)."</pre>"); }
+            else print($d1.'<br>');
+            if (is_array($d2) or is_object($d2))  { print("<pre>".print_r($d2,true)."</pre>"); }
+            else print($d2.'<br>');
+        }
+
+        $e = $this->enforcer;
+        $m = $e->getModel();
+  
+        
+        pprint( '<b>Domains relationsips</b>',                      $this->auth->get_domains() );
+        pprint( '<b>Roles definitions</b>',                         $this->auth->get_roles() );
+        pprint( '<b>Roles definitions having domain industra</b>',  $this->auth->get_roles_with_domain('industra') );
+        pprint( '<b>Roles definitions having role usage</b>',       $this->auth->get_roles_with_role('usage') );
+        pprint( '<b>Roles definitions having user pavel</b>',       $this->auth->get_roles_with_user('pavel') );
+        pprint( '<b>Permissions</b>',                               $this->auth->get_permissions() );
+        pprint('<b>Permissions for subject (role or user)</b>', $this->auth->get_permissions_for_subject('r:usage')); // add role/user differentiation
+        pprint('<b>Permissions for subject (role or user) in domain</b>', $this->auth->get_permissions_for_subject_in_domain('r:usage', 'stage')); // add role/user differentiation
+        pprint('======================', '');       
+        pprint($e->getImplicitRolesForUser('u:pavel','stage'));
+        pprint('======================');
+        pprint('test1'); // policy for a role
+        pprint($e->getFilteredPolicy(0, "r:usage"));
+        pprint('test1'); // policy for a domain
+        pprint($e->getFilteredPolicy(1, "*"));
+        pprint('test2'); // policy for a resource
+        pprint($e->getFilteredPolicy(2, "contacts"));
+        pprint('$e->getRolesForUserInDomain("kuba", "industra") (user 2 in domain 0)');
+        pprint($e->getRolesForUserInDomain("kuba", "industra"));
+
+        pprint('$e->getFilteredGroupingPolicy(0, "kuba"); all role inheritance rules');
+        pprint($e->getFilteredGroupingPolicy(0, "kuba"));
+        //You can gets all the role inheritance rules in the policy, field filters can be specified. Then use array_filter() to filter.
+        //Getting all domains that user is in
+       
+
+        //doesnt work, probably because of domain
+        pprint($e->getRolesForUser("kuba", "industra"));
+            //$r = $e->enforce((string)$sub, (string)$dom, (string)$obj, (string)$act); 
+
+        $x = $e->enforce('jirka', 'industra', '/contacts', 'read') ? 'true' : 'false';  
+        pprint('enforce:' . $x);
+        $x = (bool) $e->enforce('jirka', 'stage', '/contacts', 'read') ? 'true' : 'false';  
+        pprint('enforce:' . $x);
+
+        
+        echo $e->addRoleForUser("kubak", "r:admin","industra") ? 't': 'f';
+        echo $e->addPermissionForUser('member', 'industra', '/foo', 'read')? 't': 'f';
+        echo $e->addPolicy('eve', 'domain', 'data3', 'read') ? 't': 'f';
+        echo $e->addPolicy('steve', 'domain', 'data3', 'read') ? 't': 'f';
+                            $e->savePolicy();
+        return $response;
+    }
+
+
 }

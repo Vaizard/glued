@@ -56,16 +56,61 @@ class Auth
     protected $logger;
     protected $events;
 
-    public function __construct($settings, $db, $logger, $events) {
+    public function __construct($settings, $db, $logger, $events, $enforcer) {
         $this->db = $db;
         $this->settings = $settings;
         $this->logger = $logger;
         $this->events = $events;
+        $this->e = $enforcer;
+        $this->m = $this->e->getModel();
     }
 
     //////////////////////////////////////////////////////////////////////////
     // JWT HELPERS ///////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////
+
+    public function get_domains() {
+        return $this->m->getPolicy('g', 'g2');
+    }
+
+    public function get_roles() {
+        return $this->m->getPolicy('g','g');
+    }
+
+    public function get_roles_with_domain(string $domain) {
+        return $this->m->getFilteredPolicy('g', 'g', 2, (string) $domain);
+    }
+
+    public function get_roles_with_role(string $role) {
+        return $this->m->getFilteredPolicy('g', 'g', 1, 'r:' . (string) $role);
+    }
+    public function get_roles_with_user(string $user) {
+        return $this->m->getFilteredPolicy('g', 'g', 0, 'u:' . (string) $user);
+    }
+
+    public function get_permissions() {
+        return $this->e->getPolicy('p', 'p');
+    }
+
+    public function get_permissions_for_subject(string $sub) {
+        return $this->e->getFilteredPolicy(0, $sub);
+    }
+
+    public function get_permissions_for_subject_in_domain(string $sub, string $dom) {
+        return $this->e->getFilteredPolicy(0, $sub, $dom);
+    }
+
+    public function get_permissions_for_user($string) {
+        return $this->m->getFilteredPolicy('p','p', 0,'r:usage');
+    }
+
+    public function get_permissions_for_domain($string) {
+        return $this->m->getFilteredPolicy('p','p', 0,'r:usage');
+    }
+
+    public function get_permissions_for_object($string) {
+        return $this->m->getFilteredPolicy('p','p', 0,'r:usage');
+    }
 
 
     public function jwt_extend(array $decoded) : string {
@@ -184,55 +229,6 @@ class Auth
 
     
 
-    //////////////////////////////////////////////////////////////////////////
-    // AUTHENTICATION ACTIONS ////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Attempts to sign in a user.
-     * @param  string $email    User's e-mail.
-     * @param  string $password User's password.
-     * @return string/null      On success, the JWT token string is returned
-     *                          and $_SESSION and $_GLUED superglobals are set.
-     *                          On failure null is returned.
-     */ 
-    public function attempt($email, $password) :? string {
-        $token = null;
-        $log_context = [
-            'action' => ACT_AUTH_ATTEMPT,
-            'result' => 0,
-            'params' => [ 'email' => $email ],
-        ];
-        $this->db->join("t_core_authn a", "a.c_user_uid=u.c_uid", "LEFT");
-        $this->db->where("u.c_email", $email);
-        $this->db->where("a.c_type", 0); // [ 0 => 'passwords', 1 => 'api keys' ]
-        $result = $this->db->get("t_core_users u", null);
-           if ($this->db->count > 0) {
-            foreach ($result as $user) {
-                if (password_verify($password, $user['c_hash'])) {
-                    // 'Auth attempt successfull' code branch
-                    $_SESSION = [
-                        'core_user_id' => $user['c_user_uid'],
-                        'core_auth_id' => $user['c_uid']
-                    ];
-                    $GLOBALS['_GLUED']['authn'] = [
-                        'success' => true,
-                        'user_id' => $user['c_user_uid'],
-                        'auth_id' => $user['c_uid'],
-                        'object'  => $user
-                    ];
-                    $token = $this->jwt_setcookie($email, [ 'g_uid' => $user['c_user_uid'], 'g_aid' => $user['c_uid'] ]);
-                    $log_context['result'] = 1;
-                    $this->logger->info('Auth attempt ok', $log_context);
-                    return $token;
-                }
-            }
-        }
-        // 'Auth attempt failed' code branch
-        $this->logger->error('Auth attempt failed', $log_context);
-        $this->throttle(ACT_AUTH_ATTEMPT,'ip-address');
-        return $token;
-    }
 
 
     /**
@@ -282,20 +278,6 @@ class Auth
     public function signout() : void {
         $this->signout_session();
         $this->signout_jwt();
-    }
-
-
-    /**
-     * Checks if user has his [user_id, auth_id] pair either in the
-     * session, or in the jwt token (or in both) and if the values
-     * pass validation.
-     * @return bool
-     */
-    public function check() : bool  {
-        $user_id = $GLOBALS['_GLUED']['authn']['user_id'] ?? false;
-        $auth_id = $GLOBALS['_GLUED']['authn']['auth_id'] ?? false;
-        if (($user_id === false) or ($auth_id === false)) { return false; }
-        return true;
     }
 
 
@@ -357,43 +339,6 @@ class Auth
             throw new ErrorException(__('Forbidden.'), 403);
         }
         return $result;
-    }
-
-
-    //////////////////////////////////////////////////////////////////////////
-    // CREDENTIALS CRUD //////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////
-
-    public function cred_create($uid, $password) {
-        // TODO
-        // add interface and function to supplement once user 
-        // account with secondary login credentials, such as
-        // a secondary (plausible deniability password) or an api
-        // key, etc.
-    }
-
-    public function cred_delete($uid, $auth_id) {
-        // TODO: disable an auth token/password
-        // NOTE: do NOT delete disabled aith tokens/passwords.
-        // the attempt() function should probe even old passwords
-        // to identify IPs that should get rate-limited
-    }
-
-    public function cred_update($user_id, $auth_id, $password) {
-        // TODO add password disabling part (we want to keep the old hash to honeypot bots)
-        $this->db->where('c_type', 0);
-        $this->db->where('c_uid', (int)$auth_id);
-        $this->db->where('c_user_uid', (int)$user_id);
-        $update = $this->db->update( 't_core_authn', [
-            'c_hash' => password_hash($password, $this->settings['php']['password_hash_algo'], $this->settings['php']['password_hash_opts']) 
-        ]);
-        if (!$update) { return false; } else { return true; }
-    }
-
-    public function cred_list() :? array {
-        // replace with attribute filtering
-        // $this->db->where("c_uid", $user_id); 
-        return $this->db->get("t_core_authn");
     }
 
 
