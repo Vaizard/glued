@@ -13,10 +13,8 @@ use Slim\Routing\RouteCollectorProxy;
 // Homepage
 $app->get('/', Glued::class)->setName('core.main');
 
-$app->get ('/auth/jwtsignin',  Glued::class . ':signin')->setName('core.auth.jwtsignin');
-$app->get ('/auth/signin',  AuthController::class . ':keycloak_signin')->setName('core.auth.signin');
+$app->get ('/auth/callback',  Glued::class . ':signin')->setName('core.auth.jwtsignin');
 $app->get ('/auth/signout', AuthController::class . ':keycloak_signout')->setName('core.auth.signout');
-$app->get ('/auth/signup', AuthController::class . ':keycloak_signup')->setName('core.auth.signup');
 $app->get ('/auth/whoami',  AuthController::class . ':keycloak_whoami')->setName('core.auth.whoami');
 $app->get ('/auth/enforce',  AuthController::class . ':enforcer');
 

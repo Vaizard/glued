@@ -1,0 +1,94 @@
+
+<script nonce="{{ csp_nonce.script_src }}" type="text/javascript">
+//
+// Typeahead
+//
+$.typeahead({
+    input: '.typeahead_new_contact',
+    filter: false,
+    minLength: 1,
+    maxItem: 15,
+    dynamic: true,
+    delay: 500,
+    order: "asc", 
+    group: {
+        template: "<span class='badge badge-pill badge-primary'>{{__('Results from')}} {% verbatim %}{{group}}{% endverbatim %}</span>"
+    },
+    maxItemPerGroup: 10,
+    emptyTemplate: '{{__("No result for")}} "{% verbatim %}{{query}}{% endverbatim %}" ',
+    source: {
+        
+        // searching by names
+        "CZ name registers": {
+            display: "fn",
+            ajax: function (query) {
+                return {
+                    url: "/api/contacts/search/v1/cz/names/" + query,
+                    path: "data",
+                    type: "GET",
+                }
+            },
+            {% verbatim %}
+            template: function (query, item) {
+                return '<span>' +
+                    '{{fn}} <mark>{{nat.0.regid}}</mark>' +
+                    ' {{addr.0.unstructured}}' +
+                "</span>";
+            }
+            {% endverbatim %}
+        },
+        
+        // searching by company ids
+        "CZ RegID registers": {
+            display: "fn",
+            ajax: function (query) {
+                return {
+                    url: "/api/contacts/search/v1/cz/ids/" + query,
+                    path: "data",
+                    type: "GET",
+                }
+            },
+            {% verbatim %}
+            template: function (query, item) {
+                return '<span>' +
+                    '{{fn}} <mark>{{nat.0.regid}}</mark>' +
+                    ' {{addr.0.unstructured}}' +
+                "</span>";
+            }
+            {% endverbatim %}
+        },
+        
+        // searching by EU vatids
+        "EU VATID register (VIES)": {
+            display: "fn",
+            ajax: function (query) {
+                return {
+                    url: "/api/contacts/search/v1/eu/ids/" + query,
+                    path: "data",
+                    type: "GET",
+                }
+            },
+            {% verbatim %}
+            template: function (query, item) {
+                return '<span>' +
+                    '{{fn}} <mark>{{nat.0.vatid}}</mark>' +
+                    ' {{addr.0.unstructured}}' +
+                "</span>";
+            }
+            {% endverbatim %}
+        },
+        
+    },
+    callback: {
+        onClickAfter: function (node, a, item, event) {
+            $("#contacts_items_create_l_name").val(item.fn).attr("readonly",1);
+            $("#contacts_items_create_l_addr").val(item.addr[0].unstructured).attr("readonly",1);
+            $("#contacts_items_create_l_vatid").val(item.nat[0].vatid).attr("readonly",1);
+            $("#contacts_items_create_l_regid").val(item.nat[0].regid).attr("readonly",1);
+            $("#contacts_items_create_l_regby").val(item.nat[0].regby).attr("readonly",1);
+            $("#contacts_items_create_l_nat").val(item.nat[0].country).attr("readonly",1);
+            $("#contacts_items_create_l_type").val(item.type).attr("readonly",1);
+        }
+    }
+});
+</script>

@@ -1,0 +1,103 @@
+{% extends '/Core/Views/templates/default.twig' %}
+
+{% block content %}
+
+<div class="section-header">
+  <h1>{{ data.fn }}</h1><a href="{{ url_for('contacts.collection') }}"><button type="button" class="btn btn-primary" style="margin-left: 1em;"><i class="fas fa-level-up-alt"></i></button></a>
+</div>
+
+<div class="section-body">
+
+
+  <div class="row">
+    <div class="col-6">
+      <div class="card">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+                <tr><td class="col-sm-2">{{ __('Full name') }}</td><td><b>{{ data.fn }}</b></td></tr>
+                <tr><td class="col-sm-2">{{ __('Contact ID') }}</td><td><b>{{ data.id }}</b></td></tr>
+                <tr><td class="col-sm-2">{{ __('Banking') }}</td><td>
+                {% for a in data.acc %}
+                <span title="iban: {{ a.account_iban }}"><b>{{ a.account_number }} / {{ a.bank_code }}</b></span>
+                {% if a.src %}
+                  <i class="fas fa-info-circle" title="{{ __('Sources') }}: {% for k, i in a.src %}{{ k }}: {{ __('seen') }} {{ i.seen }}, {{ __('published') }} {{ i.published }}{% endfor %}"></i>
+                {% endif %}<br>
+                {% endfor %}
+                </b></td></tr>
+                
+                <tr><td class="col-sm-2">{{ __('E-mails') }}</td><td>
+                {% for a in data.email %}
+                <a href="mailto:{{ a.value }}"><b>{{ a.value }}</b></a><span style="float: right">{{ a.label }}</span><br>
+                {% endfor %}
+                </td></tr>
+
+                <tr><td class="col-sm-2">{{ __('Phones') }}</td><td>
+                {% for a in data.phone %}
+                <a href="tel:{{ a.value }}"><b>{{ a.value }}</b></a><span style="float: right">{{ a.label }}</span><br>
+                {% endfor %}
+                </td></tr>
+
+                <tr><td class="col-sm-2">{{ __('Addresses') }}</td><td>
+                {% for a in data.addr %}
+                <a href="https://nominatim.openstreetmap.org/ui/search.html?q={{ a.full | default(a.unstructured) | url_encode }}"><b>{{ a.full | default(a.unstructured) }}</b></a><span style="float: right">{% if a.kind.billing %}{{ __('billing') }}{% endif %} {% if a.kind.main %}{{ __('main') }}{% endif %}</span><br>
+                {% endfor %}
+                </td></tr>
+
+                {% for a in data.nat %}
+                <tr><td class="col-sm-2">{{ __('Registers') }} ({{ a.country }})</td><td>
+                {% if a.regid %}Registration ID: <b>{{ a.regid }}</b><br>{% endif %}
+                {% if a.vatid %}VAT ID: <b>{{ a.vatid }}</b><br>{% endif %}
+                {% if a.regdt %}Registratiom date: <b>{{ a.regdt }}</b><br>{% endif %}
+                </td></tr>
+                {% endfor %}
+
+                {% if data.dob %}
+                <tr><td class="col-sm-2">{{ __('Date of birth') }}</td><td>
+                {{ data.dob }}
+                </td></tr>
+                {% endif %}
+
+                {% if data.uri %}
+                <tr><td class="col-sm-2">{{ __('Uri') }}</td><td>
+                {% for a in data.uri %}
+                <a href="{{ a.value }}"><b>{{ a.value }}</b></a><span style="float: right">{{ a.label }}</span><br>
+                {% endfor %}
+                </td></tr>
+                {% endif %}
+
+                <tr><td class="col-sm-2">{{ __('Note') }}</td><td>
+                {{ data.note }}
+                </td></tr>
+
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6">
+      <div class="card">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered table-hover">
+                <tr><th class="col-sm-4">{{ __('Relationship') }}</td><th class="col-sm-4">{{ __('Label') }}</th><th class="col-sm-4">{{ __('From / Till') }}</th></tr>
+                {% if data.rels %}
+                {% for a in data.rels %}
+                <tr {% if a.dt_till %}class="table-secondary"{% endif %}><td class="col-sm-4"><a href="{{ url_for('contacts.collection') }}/{{ a.uid }}"><b>{{ a.fn }}</b></a></td><td class="col-sm-4">{{ a.label }}</td><td class="col-sm-4">{{ a.dt_from }}
+                {% if a.dt_till %} / {% endif %}{{ a.dt_till }}</td></tr>  
+                {% endfor %}
+                {% else %}
+                <tr><td class="col-sm-6">{{ __('No relationships found') }}</td><td class="col-sm-4"></td><td class="col-sm-2"></td></tr>  
+                {% endif %}
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+  
+</div>
+{% endblock %}

@@ -1,0 +1,163 @@
+
+<div class="modal fade" tabindex="-1" role="dialog" id="{{ contacts_items_id }}_modal" data-backdrop="false">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+
+
+      <div class="modal-header">
+        <h5 class="modal-title" style="padding-right: 2em;">{{ __('New contact') }}</h5>
+        <!-- typeahead -->   
+        <div class="typeahead__container">
+            <div class="typeahead__field">
+                <div class="typeahead__query">
+                    <input class="typeahead_new_contact" name="contact_items[query]" placeholder="{{__('Search businesses')}}" autocomplete="off">
+                </div>
+                <div class="typeahead__button">
+                    <button type="submit">
+                        <i class="typeahead__search-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+
+
+      <div class="modal-body">
+        <form action="{{ url_for('contacts.items.api01') }}" method="post" autocomplete="off" id="{{ contacts_items_id }}_form">
+
+
+          <div id="{{ contacts_items_id }}_form_n" style="display: block; border: 1px red solid; padding: 5px; margin-bottom: 5px;">
+            <div class="form-row"> 
+              <div class="form-group col-md-2">
+                <label>{{ __('Prefix') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_n_prefix" name="{{ contacts_items_id }}_n_prefix" class="form-control" value="">
+                </div>
+              </div>
+              <div class="form-group col-md-4">
+                <label>{{ __('Given name') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_n_given" name="{{ contacts_items_id }}_n_given" class="form-control" value="">
+                </div>
+              </div>
+              <div class="form-group col-md-4">
+                <label>{{ __('Family name') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_n_family" name="{{ contacts_items_id }}_n_family" class="form-control" value="">
+                </div>
+              </div>
+              <div class="form-group col-md-2">
+                <label>{{ __('Suffix') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_n_suffix" name="{{ contacts_items_id }}_n_suffix" class="form-control" value="">
+                </div>
+              </div>
+            </div>
+            <div class="form-row"> 
+              <div class="form-group col-md-6">
+                <label>{{ __('E-mail') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_n_email" name="{{ contacts_items_id }}_n_email" class="form-control" value="">
+                </div>
+              </div> 
+              <div class="form-group col-md-6">
+                <label>{{ __('Phone') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_n_phone" name="{{ contacts_items_id }}_n_phone" class="form-control" value="">
+                </div>
+              </div>
+            </div>
+            <div class="form-row"> 
+              <div class="form-group col-md-6">
+                <label>{{ __('Address') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_n_addr" name="{{ contacts_items_id }}_n_addr" class="form-control" value="">
+                </div>
+              </div>   
+              <div class="form-group col-md-3">
+                <label>{{ __('DOB') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_n_dob" name="{{ contacts_items_id }}_n_dob" class="form-control" value="">
+                </div>
+              </div>   
+              <div class="form-group col-md-3">
+                <label>{{ __('Job title') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_n_role" name="{{ contacts_items_id }}_n_role" class="form-control" value="">
+                </div>
+              </div>   
+            </div>
+            <div class="form-row"> 
+              <div class="form-group col-md-12">
+                <label>{{ __('Note') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_n_note" name="{{ contacts_items_id }}_n_note" class="form-control" value="">
+                </div>
+              </div>   
+            </div>
+          </div>
+          <div id="{{ contacts_items_id }}_form_n" style="display: block; border: 1px blue solid; padding: 5px;">          
+            <div class="form-row"> 
+              <div class="form-group col-md-6">
+                <label>{{ __('Business name') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_l_name" name="{{ contacts_items_id }}_l_name" class="form-control" value="">
+                </div>
+              </div>
+              <div class="form-group col-md-6">
+                <label>{{ __('Main address') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_l_addr" name="{{ contacts_items_id }}_l_addr" class="form-control" value="">
+                </div>
+              </div>   
+            </div>
+            <div class="form-row"> 
+              <div class="form-group col-md-6">
+                <label>{{ __('VAT ID') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_l_vatid" name="{{ contacts_items_id }}_l_vatid" class="form-control" value="">
+                </div>
+              </div>
+              <div class="form-group col-md-6">
+                <label>{{ __('Registration ID') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_l_regid" name="{{ contacts_items_id }}_l_regid" class="form-control" value="">
+                </div>
+              </div>   
+            </div>
+            <div class="form-row"> 
+              <div class="form-group col-md-6">
+                <label>{{ __('Note') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_l_note" name="{{ contacts_items_id }}_l_note" class="form-control" value="">
+                </div>
+              </div>
+              <div class="form-group col-md-6">
+                <label>{{ __('Web') }}</label>
+                <div class="input-group">
+                  <input type="text" id="{{ contacts_items_id }}_l_web" name="{{ contacts_items_id }}_l_web" class="form-control" value="">
+                </div>
+              </div>   
+            </div>
+            <input type="hidden" id="{{ contacts_items_id }}_l_regby" name="{{ contacts_items_id }}_l_regby" class="form-control" value="">
+            <input type="hidden" id="{{ contacts_items_id }}_l_type" name="{{ contacts_items_id }}_l_type" class="form-control" value="">
+            <input type="hidden" id="{{ contacts_items_id }}_l_nat" name="{{ contacts_items_id }}_l_nat" class="form-control" value="">
+          </div>
+          
+          <div class="modal-footer br">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Close') }}</button>
+            <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
+          </div>
+        </form>
+
+      </div>
+
+
+
+    </div>
+  </div>
+</div>

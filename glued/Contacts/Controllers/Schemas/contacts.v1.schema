@@ -1,0 +1,343 @@
+{
+    "definitions":{},
+    "$schema":"http://json-schema.org/draft-07/schema#",
+    "$id":"http://example.com/root.json",
+    "type":"object",
+    "title":"contacts schema v1",
+    "properties":{
+        "data":{
+            "type":"object",
+            "properties":{
+                "left_column":{
+                    "type":"object",
+                    "title":"left column",
+                    "properties":{
+                        "kind":{
+                            "type":"string",
+                            "enum":[
+                                "individual",
+                                "group",
+                                "organization",
+                                "location"
+                            ],
+                            "default":"individual"
+                        },
+                        "n":{
+                            "title":"Structured name",
+                            "type":"object",
+                            "properties":{
+                                "honorific_prefix":{
+                                    "type":"string",
+                                    "title":"prefix"
+                                },
+                                "given_name":{
+                                    "type":"string",
+                                    "title":"first name"
+                                },
+                                "additional_name":{
+                                    "type":"string",
+                                    "title":"middle name"
+                                },
+                                "family_name":{
+                                    "type":"string",
+                                    "title":"family name"
+                                },
+                                "honorific_suffix":{
+                                    "type":"string",
+                                    "title":"suffix"
+                                }
+                            }
+                        },
+                        "fn":{
+                            "type":"string",
+                            "title":"Full name"
+                        },
+                        "nickname":{
+                            "type":"string",
+                            "title":"Nickname"
+                        },
+                        "adr":{
+                            "title":"Address",
+                            "type":"object",
+                            "properties":{
+                                "street_address":{
+                                    "type":"string",
+                                    "title":"street address"
+                                },
+                                "extended_address":{
+                                    "type":"string",
+                                    "title":"extended address (building name, floor, room number ...)"
+                                },
+                                "locacity":{
+                                    "type":"string",
+                                    "title":"locacity (city or whatever)"
+                                },
+                                "region":{
+                                    "type":"string",
+                                    "title":"region"
+                                },
+                                "postal_code":{
+                                    "type":"string",
+                                    "title":"postal code"
+                                },
+                                "post_office_box":{
+                                    "type":"string",
+                                    "title":"post office box"
+                                },
+                                "country_name":{
+                                    "type":"string",
+                                    "title":"country name"
+                                },
+                                "geo":{
+                                    "type":"string",
+                                    "title":"geo location"
+                                }
+                            }
+                        },
+                        "comm":{
+                            "type":"array",
+                            "title":"Instant messengers",
+                            "items":{
+                                "type":"object",
+                                "properties":{
+                                    "service_type":{
+                                        "type":"string",
+                                        "title":"Type of service (fb, whatsup, icq, ...)"
+                                    },
+                                    "service_number":{
+                                        "type":"string",
+                                        "title":"Service number"
+                                    }
+                                }
+                            }
+                        },
+                        "bank":{
+                            "title":"Bank",
+                            "type":"object",
+                            "properties":{
+                                "account":{
+                                    "type":"string",
+                                    "title":"account"
+                                },
+                                "code":{
+                                    "type":"string",
+                                    "title":"code"
+                                },
+                                "iban":{
+                                    "type":"string",
+                                    "title":"iban"
+                                },
+                                "route":{
+                                    "type":"string",
+                                    "title":"route"
+                                },
+                                "name":{
+                                    "type":"string",
+                                    "title":"name"
+                                },
+                                "address":{
+                                    "type":"string",
+                                    "title":"address"
+                                }
+                            }
+                        },
+                        "id":{
+                            "type":"array",
+                            "title":"identification document or number",
+                            "items":{
+                                "type":"object",
+                                "properties":{
+                                    "domain":{
+                                        "type":"string",
+                                        "pattern":"^[A-Z]{2}$",
+                                        "title":"domain (uppercase ISO code)"
+                                    },
+                                    "kind":{
+                                        "type":"string",
+                                        "title":"kind of id",
+                                        "enum":[
+                                            "doc",
+                                            "onin",
+                                            "pnin",
+                                            "vatid"
+                                        ]
+                                    },
+                                    "id":{
+                                        "type":"string",
+                                        "title":"value of id"
+                                    }
+                                }
+                            }
+                        },
+                        "rel":{
+                            "type":"string",
+                            "title":"relationship with other contacts (leave empty)"
+                        },
+                        "files":{
+                            "type":"string",
+                            "title":"pointer to files (leave empty)"
+                        },
+                        "wallet":{
+                            "type":"string",
+                            "title":"wallet"
+                        },
+                        "cc":{
+                            "title":"credit/debit card",
+                            "type":"object",
+                            "properties":{
+                                "type":{
+                                    "type":"string",
+                                    "title":"type"
+                                },
+                                "number":{
+                                    "type":"string",
+                                    "title":"number"
+                                },
+                                "name":{
+                                    "type":"string",
+                                    "title":"name"
+                                },
+                                "exp":{
+                                    "type":"string",
+                                    "title":"expire"
+                                },
+                                "cvv":{
+                                    "type":"string",
+                                    "title":"cvv"
+                                }
+                            }
+                        },
+                        "roles":{
+                            "type":"array",
+                            "title":"contact roles",
+                            "items":{
+                                "type":"string",
+                                "title":"role",
+                                "enum":[
+                                    "creator",
+                                    "editor",
+                                    "manager"
+                                ]
+                            }
+                        },
+                        "lang":{
+                            "type":"string",
+                            "title":"languages that can be used for communication (leave empty)"
+                        }
+                    }
+                },
+                "right_column":{
+                    "type":"object",
+                    "title":"right column",
+                    "properties":{
+                        "gender":{
+                            "type":"string",
+                            "enum":[
+                                "male",
+                                "female",
+                                "unknown"
+                            ]
+                        },
+                        "email":{
+                            "type":"string",
+                            "title":"email"
+                        },
+                        "tel":{
+                            "type":"string",
+                            "title":"telephone"
+                        },
+                        "url":{
+                            "type":"string",
+                            "title":"url"
+                        },
+                        "note":{
+                            "type":"string",
+                            "title":"note"
+                        },
+                        "focus":{
+                            "type":"array",
+                            "title":"focus",
+                            "items":{
+                                "type":"object",
+                                "properties":{
+                                    "type":{
+                                        "type":"string",
+                                        "title":"type of focus",
+                                        "enum":[
+                                            "fishing",
+                                            "computer science",
+                                            "playing violin",
+                                            "bare foot walking"
+                                        ]
+                                    },
+                                    "kind":{
+                                        "type":"string",
+                                        "title":"kind",
+                                        "enum":[
+                                            "expertise",
+                                            "hobby",
+                                            "interest"
+                                        ]
+                                    },
+                                    "level":{
+                                        "type":"string",
+                                        "title":"level",
+                                        "enum":[
+                                            "low",
+                                            "high",
+                                            "expert"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "timeline":{
+                            "type":"array",
+                            "title":"Timeline",
+                            "items":{
+                                "type":"object",
+                                "properties":{
+                                    "type":{
+                                        "type":"string",
+                                        "enum":[
+                                            "birthday",
+                                            "deathday",
+                                            "marriage",
+                                            "other"
+                                        ]
+                                    },
+                                    "value":{
+                                        "type":"string",
+                                        "format":"date",
+                                        "title":"Date"
+                                    },
+                                    "place":{
+                                        "type":"string",
+                                        "title":"Place"
+                                    },
+                                    "anniversary":{
+                                        "type":"boolean",
+                                        "title":"Anniversary?",
+                                        "default":false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "_id":{
+                    "type":"string",
+                    "title":"Inner record id"
+                },
+                "creator":{
+                    "type":"string",
+                    "title":"Creator"
+                },
+                "dt_created":{
+                    "type":"string",
+                    "title":"Date of creation"
+                }
+            }
+        }
+    }
+}

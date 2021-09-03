@@ -3,10 +3,10 @@
             <div class="d-sm-none d-lg-inline-block">{{ __('Hi,') }} {{ authn.u_name | default (__('friend')) }}</div></a>
             <div class="dropdown-menu dropdown-menu-right">
               <div class="dropdown-title">{{ authn.u_name }}</div>
-              <a href="{{ url_for('core.profiles.list.web') }}/{{ authn.p_uid }}" class="dropdown-item has-icon">
+              <a href="" class="dropdown-item has-icon">
                 <i class="far fa-user"></i> {{ __('Profile') }}
               </a>
-              <a href="{{ url_for('core.accounts.list.web') }}/{{ authn.u_uid }}" class="dropdown-item has-icon">
+              <a href="" class="dropdown-item has-icon">
                 <i class="fas fa-cog"></i> {{ __('Settings') }}
               </a>
               <div class="dropdown-divider"></div>

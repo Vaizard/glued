@@ -21,8 +21,26 @@ class Glued extends AbstractTwigController
      */
     public function __invoke(Request $request, Response $response, array $args = []): Response
     {
+        return $this->render($response, 'Core/Views/pages/main.twig', []);
+    }
 
+    public function signin(Request $request, Response $response, array $args = []): Response
+    {
+        $caller = '';
+        if ($enc = $request->getQueryParam('caller', $default = null)) {
+                $caller = $this->crypto->decrypt( $enc , $this->settings['crypto']['reqparams'] );
+        }
 
+        return $this->render($response, 'Core/Views/pages/auth.twig', [
+                'caller' => $caller,
+                'hostname' => $this->settings['glued']['hostname'],
+                'oidc_token' => $this->settings['oidc']['uri']['token'],
+                'oidc_auth' => $this->settings['oidc']['uri']['auth'],
+                'oidc_client' => $this->settings['oidc']['client']['public']['id'],
+                'oidc_cookie_name' => $this->settings['oidc']['cookie'],
+                'oidc_cookie_params' => $this->settings['oidc']['cookie_params'],
+        ]);
+    }
 
 //INSERT INTO t VALUES(UUID_TO_BIN(UUID(), true));”
 // Add data to tokens
@@ -44,29 +62,6 @@ class Glued extends AbstractTwigController
 // 
 
 
-        return $this->render($response, 'Core/Views/glued.twig', [
-/*                'certs' => $certs,
-                'ahdr' => $accesstoken,
-                'jwt_claims' => $jwt->claims->all() ?? [],
-                'jwt_header' => $jwt->header->all() ?? [], 
-                'pageTitle' => 'Home',*/
-        ]);
-    }
-    public function signin(Request $request, Response $response, array $args = []): Response
-    {
-        $caller = '';
-        if ($enc = $request->getQueryParam('caller', $default = null)) {
-                $caller = $this->crypto->decrypt( $enc , $this->settings['crypto']['reqparams'] );
-        }
 
-        return $this->render($response, 'Core/Views/auth.twig', [
-                'caller' => $caller,
-                'hostname' => $this->settings['glued']['hostname'],
-                'oidc_token' => $this->settings['oidc']['uri']['token'],
-                'oidc_auth' => $this->settings['oidc']['uri']['auth'],
-                'oidc_client' => $this->settings['oidc']['client']['public']['id'],
-                'oidc_cookie_name' => $this->settings['oidc']['cookie'],
-                'oidc_cookie_params' => $this->settings['oidc']['cookie_params'],
-        ]);
-    }
+
 }
