@@ -6,18 +6,11 @@ namespace Glued\Core\Controllers;
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Psr\Http\Message\RequestFactoryInterface;
 use Http\Message\Authentication\Bearer;
-use Psr\Http\Message\RequestInterface;
-use Psr\Container\ContainerInterface;
 use Glued\Core\Classes\Exceptions\AuthTokenException;
-
-
-
 
 class ProxyController extends AbstractController
 {
-
 
     public function make_request($endpoint, $params = [], $token = '', $guzzleopts = []) {
         $uri    = $this->urifactory->createUri($endpoint)->withQuery(http_build_query($params));
@@ -44,7 +37,6 @@ class ProxyController extends AbstractController
         }
     }
 
-
     public function fe_healthcheck(Request $request, Response $response, array $args = []): Response {
         try {
             $endpoint   = 'https://10.146.149.186/api/core/v1/adm/healtcheck/be';
@@ -56,6 +48,7 @@ class ProxyController extends AbstractController
             $data = [ '@status' => 'unauthenticated' ];
             return $response->withJson($data)->withCode(401);
         }
+        // TODO catch $this->make_request() exceptions here
      	$data = [
             '@status' => $be_res->getReasonPhrase(),
             '@code' => $be_res->getStatusCode(),
@@ -64,7 +57,6 @@ class ProxyController extends AbstractController
         ];
 	    return $response->withJson($data);
     }
-
 
     public function be_healthcheck(Request $request, Response $response, array $args = []): Response {
         $params = $request->getQueryParams();
