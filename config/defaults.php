@@ -243,6 +243,7 @@ return [
                 'unsafe-eval' => true
             ],
             'object-src' => [ 'default-src' => 'false' ],
+            'img-src' => [ 'self' => true ],
             'frame-ancestors' => [ 
                 'self' => true, 
                 'allow' => [ 
