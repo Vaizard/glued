@@ -7,86 +7,74 @@ namespace Glued\Core\Controllers;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\RequestFactoryInterface;
-use Http\Discovery\Psr17FactoryDiscovery;
-use Http\Discovery\Psr18ClientDiscovery;
 use Http\Message\Authentication\Bearer;
 use Psr\Http\Message\RequestInterface;
-use GuzzleHttp\Client;
+use Psr\Container\ContainerInterface;
+use Glued\Core\Classes\Exceptions\AuthTokenException;
 
-class ProxyController extends AbstractJsonController
+
+
+
+class ProxyController extends AbstractController
 {
 
-    function __construct() {
-        $this->requestFactory = Psr17FactoryDiscovery::findRequestFactory();
-        $this->uriFactory = Psr17FactoryDiscovery::findUriFactory();
-        $this->streamFactory = Psr17FactoryDiscovery::findStreamFactory();
-        $this->httpClient = new Client(['verify' => false]);
-        // Guzzle Client is hardcoaded here instead of
-        // $this->httpClient = Psr18ClientDiscovery::find();
-        // Discovery fails.
-    }
 
+    public function make_request($endpoint, $params = [], $token = '', $guzzleopts = []) {
+        $uri    = $this->urifactory->createUri($endpoint)->withQuery(http_build_query($params));
+        $be_req = $this->reqfactory->createRequest('GET', $uri);
+        if ($token) {
+            $bearer = new Bearer($token);
+            $be_req = $bearer->authenticate($be_req);
+        }
+        $be_res = $this->guzzle->sendAsync($be_req, $guzzleopts)->wait();
+        $code = $be_res->getStatusCode();
 
-    private function makeRequest(RequestInterface $request) {
-        // So the access token needs to be fetched first somewhere.
-        //$accessToken = $this->oidc_svc->callback()->getAccessToken();
-        $accessToken = 'toktok';
-        $bearer = new Bearer($accessToken);
-
-        $request = $bearer->authenticate($request);
-        $response = $this->httpClient->sendRequest($request);
-
-        $code = $response->getStatusCode();
-        if ($code >= 200 && $code < 300) {
-            return json_decode((string)$response->getBody(), true);
-        } else if ($code >= 300 && $code < 400) {
-            throw new HTTPRedirectException('Redirect response', $response);
+        if ($code >= 200 && $code < 400) {
+            return $be_res;
         } else if ($code == 404) {
             throw new HTTPNotFoundException('Endpoint not found', $response);
-//        } else if ($code == 401) {
-//            throw new HTTPNotFoundException('Unauthorized', $response);
-        } else if ($code >= 400) {
+        } else if ($code == 401) {
+            throw new HTTPNotUnauthorizedException('Unauthorized', $response);
+        } else if ($code == 403) {
+            throw new HTTPNotForbiddenException('Unauthorized', $response);
+        } else if ($code >= 500) {
             throw new HTTPBadRequestException('Received Bad request', $response);
         } else {
-            throw new HTTPBaseException('Received unexpected HTTP response code', $response);
+            throw new HTTPException('Received unexpected HTTP response code', $response);
         }
     }
 
 
-    public function get($endpoint, $params = []) {
-        $query = http_build_query($params);
-        $uri = $this->uriFactory->createUri($endpoint);
-        $uri = $uri->withQuery($query);
-        $request = $this->requestFactory->createRequest('GET', $uri);
-        return $this->makeRequest($request);
-    }
-
-
     public function fe_healthcheck(Request $request, Response $response, array $args = []): Response {
-        $params = $request->getQueryParams();
-        $be_data = $this->get('https://10.146.149.186/api/core/v1/adm/healtcheck/be', $params);
-	$data = [
-            'ts' => microtime(),
-            'status' => 'ok',
-            'endpoint' => 'frontend',
-            'params' => $params,
-            'backend' => $be_data,
+        try {
+            $endpoint   = 'https://10.146.149.186/api/core/v1/adm/healtcheck/be';
+            $params     = $request->getQueryParams();
+            $token      = $this->auth->fetch_token($request);
+            $guzzleopts = [ 'verify' => false ];
+            $be_res     = $this->make_request($endpoint, $params, $token, $guzzleopts);
+        } catch (AuthTokenException $e) {
+            $data = [ '@status' => 'unauthenticated' ];
+            return $response->withJson($data)->withCode(401);
+        }
+     	$data = [
+            '@status' => $be_res->getReasonPhrase(),
+            '@code' => $be_res->getStatusCode(),
+            '@params' => $params,
+            '@data' => json_decode((string)$be_res->getBody(), true),
         ];
-	return $response->withJson($data);
+	    return $response->withJson($data);
     }
-
 
 
     public function be_healthcheck(Request $request, Response $response, array $args = []): Response {
         $params = $request->getQueryParams();
-	$data = [
-            'ts' => microtime(),
-            'status' => 'ok',
-            'params' => $params,
-            'endpoint' => 'backend',
-        ];
-	return $response->withJson($data);
+        $data = [
+                'ts' => microtime(),
+                'status' => 'ok',
+                'params' => $params,
+                'endpoint' => 'backend',
+            ];
+    	return $response->withJson($data);
     }
-
 
 }

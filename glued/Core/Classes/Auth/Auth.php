@@ -10,42 +10,14 @@ use Monolog\Logger;
 use Respect\Validation\Validator as v;
 use Sabre\Event\emit;
 use UnexpectedValueException;
+use Glued\Core\Classes\Exceptions\AuthTokenException;
+use Glued\Core\Classes\Exceptions\AuthOidcException;
+use Glued\Core\Classes\Exceptions\DbException;
+use Jose\Component\Core\JWK;
+
 
 /**
- * Authentication
- *
- * Glued's authentication is twofold:
- * 
- * - session based
- * - jwt token based
- *
- * We keep sessions around since we're afraid to deal with the fallout.
- * Some components (i.e. slim-flash) rely on sessions, so we can't
- * get rid of them easily wihtout thinking. Going completely stateless
- * is also quite an endavour (i.e. token invalidation mechanisms, etc.). 
- * We use jwt to get state of the art authentication.
- * 
- * Users using browsers will always get 
- *
- * - a session cookie
- * - a jwt token (stored in a cookie)
- *
- * Users accessing the api directly will get only
- *
- * - the jwt token (sent in the response body)
- *
- * The session authentication middleware is configured to require a valid
- * session on all private routes and all api routes with the exception of
- * the signup and signin page routes. The jwt authentication middleware is 
- * configured to to require a valid jwt token sent as either a header or 
- * a cookie on all api routes with the exception of the signin api route.
- *
- * The middlewares set the $request attributes which are accessible through
- * the $request->getattribute('auth') array. First executes the jwt 
- * middleware, later the session middleware.  
- *
- * TODO: replace $_SESSION everywhere with $request->getattribute('auth')
- * 
+ * Provides authentication and authorization methods
  */
 
 class Auth
@@ -56,17 +28,19 @@ class Auth
     protected $logger;
     protected $events;
 
-    public function __construct($settings, $db, $logger, $events, $enforcer) {
+    public function __construct($settings, $db, $logger, $events, $enforcer, $fscache, $utils) {
         $this->db = $db;
         $this->settings = $settings;
         $this->logger = $logger;
         $this->events = $events;
         $this->e = $enforcer;
         $this->m = $this->e->getModel();
+        $this->fscache = $fscache;
+        $this->utils = $utils;
     }
 
     //////////////////////////////////////////////////////////////////////////
-    // JWT HELPERS ///////////////////////////////////////////////////////////
+    // AUTHORIZATION METHODS /////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////
 
     public function get_domains() {
@@ -111,7 +85,76 @@ class Auth
     public function get_permissions_for_object($string) {
         return $this->m->getFilteredPolicy('p','p', 0,'r:usage');
     }
+
+    //////////////////////////////////////////////////////////////////////////
+    // AUTHENTICATION METHODS ////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+
+    public function get_jwks(): array {
+        $oidc = $this->settings['oidc'];
+        $hit = $this->fscache->has('glued_oidc_uri_discovery');
+        if ($hit) {
+            $conf = (array) json_decode($this->fscache->get('glued_oidc_uri_discovery') ?? []);
+            if ($conf['issuer'] != $oidc['uri']['realm']) $hit = false;
+        }
+
+        if (!$hit) {
+            $json = $this->utils->fetch_uri($oidc['uri']['discovery']);
+            $conf = (array) json_decode($json);
+            if ($conf['issuer'] != $oidc['uri']['realm']) throw new \AuthOidcException('Identity backend configuration mismatch.');
+            $this->fscache->set('glued_oidc_uri_discovery', $json, 300); // TODO make the 300s value configurable
+        }
+
+        $hit = $this->fscache->has('glued_oidc_uri_jwks');
+        if ($hit) {
+            $conf = (array) json_decode($this->fscache->get('glued_oidc_uri_jwks') ?? []);
+            if (!isset($jwks['keys'])) $hit = false;
+        }
+
+        if (!$hit) {
+            $json = $this->utils->fetch_uri($oidc['uri']['jwks']);
+            $jwks = (array) json_decode($json);
+            if (!isset($jwks['keys'])) throw new \AuthOidcException('Identity backend certs mismatch.');
+            $this->fscache->set('glued_oidc_uri_jwks', $json, 300); // TODO make the 300s value configurable
+        }
+
+        $certs = [];
+        foreach ($jwks['keys'] as $item) {
+            $item = (array) $item;
+            if ($item['use'] === 'sig') $certs[] = new JWK($item);
+        }
+        return $certs;
+    }
+
+
+    public function fetch_token($request) {
+        // Check for token in header.
+        $header = $request->getHeaderLine($this->settings['oidc']["header"]);
+        if (false === empty($header)) {
+            if (preg_match($this->settings['oidc']["regexp"], $header, $matches)) {
+                //$this->log(LogLevel::DEBUG, "Using token from request header");
+                return $matches[1];
+            }
+        }
+
+        // Token not found in header, try the cookie.
+        $cookieParams = $request->getCookieParams();
+        if (isset($cookieParams[$this->settings['oidc']['cookie']])) {
+            //$this->log(LogLevel::DEBUG, "Using token from cookie");
+            if (preg_match($this->settings['oidc']["regexp"], $cookieParams[$this->settings['oidc']['cookie']], $matches)) {
+                return $matches[1];
+            }
+            return $cookieParams[$this->settings['oidc']["cookie"]];
+        };
+
+        // If everything fails log and throw.
+        //$this->log(LogLevel::WARNING, "Token not found");
+        throw new AuthTokenException("Token not found.");
+    }
    
+    //////////////////////////////////////////////////////////////////////////
+    // OTHER AUTH RELATED METHODS ////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
 
     public function getroutes() :? array {
         $routes = $app->getContainer()->router->getRoutes();
@@ -128,9 +171,6 @@ class Auth
             $e->savePolicy();
         }
     }
-
-    
-
 
     public function user_list() :? array {
         // replace with attribute filtering

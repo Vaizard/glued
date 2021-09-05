@@ -15,18 +15,14 @@ use Slim\Views\Twig;
 use Symfony\Contracts\EventDispatcher\Event;
 use Twig\TwigFunction;
 use Glued\Core\Classes\Utils;
-use Jose\Component\Core\JWK;
+
 use Jose\Component\Core\JWKSet;
 use Jose\Easy\Load;
-
-
-
-class TokenException extends \Exception {}
-class DbException extends \Exception {}
-class JwtException extends \Exception {}
-class TransformException extends \Exception {}
-
-
+use Glued\Core\Classes\Exceptions\AuthTokenException;
+use Glued\Core\Classes\Exceptions\AuthJwtException;
+use Glued\Core\Classes\Exceptions\AuthOidcException;
+use Glued\Core\Classes\Exceptions\DbException;
+use Glued\Core\Classes\Exceptions\TransformException;
 
 /**
  * Deals with RBAC/ABAC
@@ -43,69 +39,6 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
      * 
      * @return  array   Array of Jose\Component\Core\JWK objects.
      */
-    private function get_jwks(): array {
-
-        $oidc = $this->settings['oidc'];
-        $hit = $this->fscache->has('glued_oidc_uri_discovery');
-        if ($hit) {
-            $conf = (array) json_decode($this->fscache->get('glued_oidc_uri_discovery') ?? []);
-            if ($conf['issuer'] != $oidc['uri']['realm']) $hit = false;
-        }
-
-        if (!$hit) {
-            $json = $this->utils->fetch_uri($oidc['uri']['discovery']);
-            $conf = (array) json_decode($json);
-            if ($conf['issuer'] != $oidc['uri']['realm']) throw new \Exception('Identity backend configuration mismatch.');
-            $this->fscache->set('glued_oidc_uri_discovery', $json, 300); // TODO make the 300s value configurable
-        }
-
-        $hit = $this->fscache->has('glued_oidc_uri_jwks');
-        if ($hit) {
-            $conf = (array) json_decode($this->fscache->get('glued_oidc_uri_jwks') ?? []);
-            if (!isset($jwks['keys'])) $hit = false;
-        }
-
-        if (!$hit) {
-            $json = $this->utils->fetch_uri($oidc['uri']['jwks']);
-            $jwks = (array) json_decode($json);
-            if (!isset($jwks['keys'])) throw new \Exception('Identity backend certs mismatch.');
-            $this->fscache->set('glued_oidc_uri_jwks', $json, 300); // TODO make the 300s value configurable
-        }
-
-        $certs = [];
-        foreach ($jwks['keys'] as $item) {
-            $item = (array) $item;
-            if ($item['use'] === 'sig') $certs[] = new JWK($item);
-        }
-        return $certs;
-    }
-
-    private function fetch_token($request) {
-
-        // Check for token in header.
-        $header = $request->getHeaderLine($this->settings['oidc']["header"]);
-        if (false === empty($header)) {
-            if (preg_match($this->settings['oidc']["regexp"], $header, $matches)) {
-                //$this->log(LogLevel::DEBUG, "Using token from request header");
-                return $matches[1];
-            }
-        }
-
-        // Token not found in header, try the cookie.
-        $cookieParams = $request->getCookieParams();
-
-        if (isset($cookieParams[$this->settings['oidc']['cookie']])) {
-            //$this->log(LogLevel::DEBUG, "Using token from cookie");
-            if (preg_match($this->settings['oidc']["regexp"], $cookieParams[$this->settings['oidc']['cookie']], $matches)) {
-                return $matches[1];
-            }
-            return $cookieParams[$this->settings['oidc']["cookie"]];
-        };
-
-        // If everything fails log and throw.
-        //$this->log(LogLevel::WARNING, "Token not found");
-        throw new TokenException("Token not found.");
-    }
 
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface {
@@ -113,8 +46,8 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
         try {
             // Get oidc config, jwk signing keys and the access token
             $oidc = $this->settings['oidc'];
-            $certs = $this->get_jwks($oidc);
-            $accesstoken = $this->fetch_token($request);
+            $certs = $this->auth->get_jwks($oidc);
+            $accesstoken = $this->auth->fetch_token($request);
           
             // Authenticate user. Exceptions (i.e. invalid jwt, database 
             // errors etc.) are handled by the catch below.
@@ -130,7 +63,7 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
                     ->run();                     // Do it.
                 $jwt_claims = $jwt->claims->all() ?? [];
                 $jwt_header = $jwt->header->all() ?? [];
-            } catch (\Exception $e) { throw new JwtException($e->getMessage(), $e->getCode(), $e); }
+            } catch (\Exception $e) { throw new AuthJwtException($e->getMessage(), $e->getCode(), $e); }
 
             try {
                 // TODO join with events table
@@ -153,8 +86,8 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
                     ->map('name.0.@.src',       'iss')
                     ->map('email.0.uri',        'email')
                     ->map('email.0.@.src',      'iss')
-                    ->map('email.0.@.pref',     '===', $this->transform->rule()->default(1))
-                    ->map('service.0.kind',     '===', $this->transform->rule()->default('oidc'))
+                    ->set('email.0.@.pref',     1)
+                    ->set('service.0.kind',     'oidc')
                     ->map('service.0.uri',      'iss')
                     ->map('service.0.handle',   'preferred_username')
                     ->map('website.0.uri',      'website')
@@ -182,7 +115,7 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
             // TODO handle race conditions and db errors.
 
         } 
-        catch (JwtException | TokenException $e) {
+        catch (AuthJwtException | AuthTokenException $e) {
             if ($request->getUri()->getPath() != $this->routecollector->getRouteParser()->urlFor('core.auth.jwtsignin')) {
                 $en = $this->crypto->encrypt($request->getUri()->getPath(), $this->settings['crypto']['reqparams']);
                 return $handler->handle($request)->withRedirect($this->routecollector->getRouteParser()->urlFor('core.auth.jwtsignin') .'?'. http_build_query(['caller' => $en]));
@@ -190,7 +123,7 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
         }
         catch (DbException $e) { echo $e->getMessage(); die(); }
         catch (TransformException $e) { echo $e->getMessage(); die(); }
-        catch (\Exception $e) { echo $e->getMessage(); die(); }
+        //catch (\Exception $e) { echo 'x'.$e->getMessage(); die(); }
 
 
 

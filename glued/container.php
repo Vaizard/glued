@@ -45,6 +45,10 @@ use VStelmakh\UrlHighlightTwigExtension\UrlHighlightExtension;
 use Keiko\Uuid\Shortener\Dictionary;
 use Keiko\Uuid\Shortener\Shortener;
 use Selective\Transformer\ArrayTransformer;
+use GuzzleHttp\Client as Guzzle;
+use Http\Discovery\Psr17FactoryDiscovery;
+use Http\Discovery\Psr18ClientDiscovery;
+
 
 
 $container->set('events', function () {
@@ -262,6 +266,8 @@ $container->set('auth', function (Container $c) {
                     $c->get('logger'), 
                     $c->get('events'),
                     $c->get('enforcer'),
+                    $c->get('fscache'),
+                    $c->get('utils')
                 );
 });
 
@@ -276,6 +282,18 @@ $container->set('stor', function (Container $c) {
 $container->set('crypto', function () {
     // TODO cleanup codebase from Crypto initialization
     return new Glued\Core\Classes\Crypto\Crypto();
+});
+
+$container->set('reqfactory', function () {
+    return Psr17FactoryDiscovery::findUriFactory();
+});
+
+$container->set('urifactory', function () {
+    return Psr17FactoryDiscovery::findRequestFactory();
+});
+
+$container->set('guzzle', function () {
+    return new Guzzle();
 });
 
 
