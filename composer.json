@@ -57,7 +57,7 @@
     "symfony/twig-bridge": "^5.3",
     "twig/string-extra": "^3.3",
     "symfony/config": "^5.3",
-    "selective/transformer": "^1.0",
+    "selective/transformer": "^1",
     "casbin/database-adapter": "^1.5"
   },
   "require-dev": {
