@@ -10,10 +10,9 @@ public/assets/node_modules/**
 public/db/**
 public/assets/cache/**
 phinx.yml
-private/api/**
+private/apikeys/**
 private/backups/**
 private/cache/**
-private/keys/**
 private/crypto/**
 private/data/**
 private/log/**

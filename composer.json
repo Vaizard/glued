@@ -58,7 +58,8 @@
     "twig/string-extra": "^3.3",
     "symfony/config": "^5.3",
     "selective/transformer": "^1",
-    "casbin/database-adapter": "^1.5"
+    "casbin/database-adapter": "^1.5",
+    "google/apiclient": "^2.10"
   },
   "require-dev": {
     "ergebnis/composer-normalize": "^2.15"
