@@ -147,7 +147,7 @@
 <div class="modal fade" id="modal-copy-move-stor" tabindex="-1" role="dialog" data-backdrop="false">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form method="post" action="{{ url_for('stor.item.copy.move') }}">
+            <form method="post" action="{{ url_for('app.stor.copymove') }}">
                 <input type="hidden" name="action_source" value="browser" />
                 <input id="copy_move_file_uid" type="hidden" name="file_id" value="" />
                 <div class="modal-header">
@@ -200,10 +200,10 @@
         // prepiseme adresu (strcime tam objekt s obsahem selectu2)
         if (typeof (history.pushState) != "undefined") {
             if (url_filter == "") {
-                var new_url = "{{ url_for('stor.browser') }}";
+                var new_url = "{{ url_for('app.stor.browser') }}";
             }
             else {
-                var new_url = "{{ url_for('stor.browser') }}?filter=" + url_filter;
+                var new_url = "{{ url_for('app.stor.browser') }}?filter=" + url_filter;
             }
             history.pushState(vybrano, "", new_url);
         }
@@ -224,7 +224,7 @@
         // ted to posleme jako zestringovany json
         
         $.ajax({
-          url: "{{ url_for('stor.api.filtered.files') }}",
+          url: "{{ url_for('api.stor.filter.v1') }}",
           type: "GET",
           dataType: "json",
           contentType: "application/json",
@@ -307,7 +307,7 @@
     $("#pop_stor_delete_button").on('click', function() {
         var link_id = $("#delete_file_uid").val();
         $.ajax({
-          url: "{{ url_for('stor.ajax.delete') }}",  
+          url: "{{ url_for('api.stor.delete.v1') }}",  
           type: "POST",
           dataType: "text",
           data: { link_id: link_id },
@@ -337,7 +337,7 @@
         var link_id = $("#edit_file_uid").val();
         var new_fname = $("#edit_file_fname").val();
         $.ajax({
-          url: "{{ url_for('stor.ajax.update') }}",
+          url: "{{ url_for('api.stor.update.v1') }}",
           type: "POST",
           dataType: "text",
           data: { link_id: link_id, new_fname: new_fname },
@@ -366,7 +366,7 @@
         var dirname = $("#stor_copy_move_target_dir").val();
         
         $.ajax({
-          url: "{{ url_for('stor.api.modal.objects') }}",  
+          url: "{{ url_for('api.stor.actionable.v1') }}",  
           dataType: "text",
           type: "GET",
           data: "dirname=" + dirname,
@@ -406,7 +406,7 @@
           },
           width: "100%",
           ajax: {
-            url: "{{ url_for('stor.api.filter.options') }}",
+            url: "{{ url_for('api.stor.filter.options.v1') }}",
             dataType: "json"
           }
         });

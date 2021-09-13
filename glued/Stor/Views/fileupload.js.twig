@@ -39,7 +39,7 @@
         var formData = new FormData(document.getElementById("storFileUploadForm"));
         
         $.ajax({
-            url : '{{ url_for("stor.api.uploader") }}',
+            url : '{{ url_for("api.stor.uploader.v1") }}',
             type : 'POST',
             data : formData,
             processData: false,  // tell jQuery not to process the data

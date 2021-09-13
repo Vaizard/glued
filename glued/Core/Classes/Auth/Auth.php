@@ -99,9 +99,10 @@ class Auth
         }
 
         if (!$hit) {
-            $json = $this->utils->fetch_uri($oidc['uri']['discovery']);
+            $json = (string) $this->utils->fetch_uri($oidc['uri']['discovery']) ?? ''; 
             $conf = (array) json_decode($json);
-            if ($conf['issuer'] != $oidc['uri']['realm']) throw new \AuthOidcException('Identity backend configuration mismatch.');
+            if ($conf == []) throw new AuthOidcException('Identity backend returned empty resultset, backend down?');
+            if ($conf['issuer'] != $oidc['uri']['realm']) throw new AuthOidcException('Identity backend configuration mismatch.');
             $this->fscache->set('glued_oidc_uri_discovery', $json, 300); // TODO make the 300s value configurable
         }
 
@@ -112,9 +113,10 @@ class Auth
         }
 
         if (!$hit) {
-            $json = $this->utils->fetch_uri($oidc['uri']['jwks']);
+            $json = (string) $this->utils->fetch_uri($oidc['uri']['jwks']) ?? '';
             $jwks = (array) json_decode($json);
-            if (!isset($jwks['keys'])) throw new \AuthOidcException('Identity backend certs mismatch.');
+            if ($conf == []) throw new AuthOidcException('Identity backend returned empty resultset., backend down?');
+            if (!isset($jwks['keys'])) throw new AuthOidcException('Identity backend certs mismatch.');
             $this->fscache->set('glued_oidc_uri_jwks', $json, 300); // TODO make the 300s value configurable
         }
 

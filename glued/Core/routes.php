@@ -11,38 +11,28 @@ use Slim\Routing\RouteCollectorProxy;
 
 
 // Homepage
-$app->get('/', Glued::class)->setName('core.main');
+$app->get('/', Glued::class)->setName('app.core.root');
 
-$app->get ('/auth/callback',  Glued::class . ':signin')->setName('core.auth.jwtsignin');
-$app->get ('/auth/signout', AuthController::class . ':keycloak_signout')->setName('core.auth.signout');
-$app->get ('/auth/whoami',  AuthController::class . ':keycloak_whoami')->setName('core.auth.whoami');
-$app->get ('/auth/enforce',  AuthController::class . ':enforcer');
-
-
-$app->group('', function (RouteCollectorProxy $route) {
-    $route->group('', function ($route) {
-        $route->get ('/adm/oidc', AuthController::class . ':keycloak_adm');
-        $route->get ('/adm/routes', AdmController::class . ':routes');
-        $route->get ('/adm/phpinfo', function(Request $request, Response $response) {
-            phpinfo();
-            return $response;
-        }) -> setName('core.admin.phpinfo.web');
-        $route->get ('/adm/phpconst', function(Request $request, Response $response) { 
-            highlight_string("<?php\nget_defined_constants() =\n" . var_export(get_defined_constants(true), true) . ";\n?>");
-            return $response; 
-        }) -> setName('core.admin.phpconst.web');
-    });
+$app->group('/core', function (RouteCollectorProxy $route) {
+    $route->get ('/auth/callback', Glued::class . ':signin')->setName('app.core.auth.callback');
+    $route->get ('/auth/signout', AuthController::class . ':keycloak_signout')->setName('app.core.auth.signout');
+    $route->get ('/auth/confidential/whoami', AuthController::class . ':keycloak_whoami')->setName('app.core.auth.confidential.whoami');
+    $route->get ('/auth/confidential/adm', AuthController::class . ':keycloak_adm')->setName('app.core.auth.confidential.adm');
+    $route->get ('/auth/enforce', AuthController::class . ':enforcer')->setName('app.core.auth.enforce');
+    $route->get ('/phpinfo', function (Request $request, Response $response) {
+        phpinfo();
+        return $response;
+    })->setName('app.core.phpinfo');
+    $route->get ('/phpconst', function(Request $request, Response $response) { 
+        highlight_string("<?php\nget_defined_constants() =\n" . var_export(get_defined_constants(true), true) . ";\n?>");
+        return $response; 
+    })->setName('app.core.phpconst');
 });
 
-$app->group('/api/core/v1', function (RouteCollectorProxy $route) {
-    // Everyone or Guests-only
-    $route->group('', function (RouteCollectorProxy $route) {
-        $route->get ('/auth/whoami', ProxyController::class . ':api_status_get')->setName('core.auth.whaomi.api');
-        $route->get ('/adm/healtcheck/fe', ProxyController::class . ':fe_healthcheck')->setName('core.adm.healtcheck.fe.api');
-        $route->get ('/adm/healtcheck/be', ProxyController::class . ':be_healthcheck')->setName('core.adm.healtcheck.be.api');
-        $route->get ('/adm/routes', AdmController::class . ':routes')->setName('core.adm.routes');
-
-    });
+$app->group('/api/core', function (RouteCollectorProxy $route) {
+    $route->get ('/routes/v1', AdmController::class . ':routes')->setName('api.core.routes.v1');
+    $route->get ('/healtcheck/v1/fe', ProxyController::class . ':fe_healthcheck')->setName('api.core.adm.healtcheck.fe.v1');
+    $route->get ('/healtcheck/v1/be', ProxyController::class . ':be_healthcheck')->setName('api.core.adm.healtcheck.be.v1');
 });
 
 

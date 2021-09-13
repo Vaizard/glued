@@ -116,11 +116,12 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
 
         } 
         catch (AuthJwtException | AuthTokenException $e) {
-            if ($request->getUri()->getPath() != $this->routecollector->getRouteParser()->urlFor('core.auth.jwtsignin')) {
+            if ($request->getUri()->getPath() != $this->routecollector->getRouteParser()->urlFor('app.core.auth.callback')) {
                 $en = $this->crypto->encrypt($request->getUri()->getPath(), $this->settings['crypto']['reqparams']);
-                return $handler->handle($request)->withRedirect($this->routecollector->getRouteParser()->urlFor('core.auth.jwtsignin') .'?'. http_build_query(['caller' => $en]));
+                return $handler->handle($request)->withRedirect($this->routecollector->getRouteParser()->urlFor('app.core.auth.callback') .'?'. http_build_query(['caller' => $en]));
             }
         }
+        catch (AuthOidcException $e) { echo $e->getMessage(); die(); }
         catch (DbException $e) { echo $e->getMessage(); die(); }
         catch (TransformException $e) { echo $e->getMessage(); die(); }
         //catch (\Exception $e) { echo 'x'.$e->getMessage(); die(); }
