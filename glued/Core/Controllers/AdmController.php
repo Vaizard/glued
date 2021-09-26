@@ -12,19 +12,20 @@ use Http\Discovery\Psr18ClientDiscovery;
 use Http\Message\Authentication\Bearer;
 use Psr\Http\Message\RequestInterface;
 use GuzzleHttp\Client;
+use Glued\Core\Classes\Auth;
 
 class AdmController extends AbstractTwigController
 {
 
+
     public function routes(Request $request, Response $response, array $args = []): Response {
-        $routes = $this->routecollector->getRoutes();
-        foreach ($routes as $route) {
-            $item['pattern'] = $route->getPattern();
-            $item['methods'] = $route->getMethods();
-            $item['name'] = $route->getName();
-            $data[] = $item;
-        }
-	return $response->withJson($data);
+        $data = $this->utils->get_routes();
+	    return $response->withJson($data);
+    }
+
+    public function ui(Request $request, Response $response, array $args = []): Response {
+        $data = $this->utils->get_navigation();
+        return $response->withJson($data);
     }
 
 

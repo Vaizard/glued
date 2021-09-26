@@ -11,7 +11,7 @@ use Slim\Routing\RouteCollectorProxy;
 
 
 // Homepage
-$app->get('/', Glued::class)->setName('app.core.root');
+$app->get('/', Glued::class)->setName('app.core.home');
 
 $app->group('/core', function (RouteCollectorProxy $route) {
     $route->get ('/auth/callback', Glued::class . ':signin')->setName('app.core.auth.callback');
@@ -31,8 +31,10 @@ $app->group('/core', function (RouteCollectorProxy $route) {
 
 $app->group('/api/core', function (RouteCollectorProxy $route) {
     $route->get ('/routes/v1', AdmController::class . ':routes')->setName('api.core.routes.v1');
-    $route->get ('/healtcheck/v1/fe', ProxyController::class . ':fe_healthcheck')->setName('api.core.adm.healtcheck.fe.v1');
-    $route->get ('/healtcheck/v1/be', ProxyController::class . ':be_healthcheck')->setName('api.core.adm.healtcheck.be.v1');
+    $route->get ('/ui/routetree/v1', AdmController::class . ':ui')->setName('api.core.routetree.v1');
+    $route->get ('/healthcheck/v1/fe', ProxyController::class . ':fe_healthcheck')->setName('api.core.adm.healthcheck.fe.v1')->setArgument('x', 'y');//->setArguments(['becva' => 'lala']);
+    $route->get ('/healthcheck/v1/be', ProxyController::class . ':be_healthcheck')->setName('api.core.adm.healthcheck.be.v1');
 });
 
+$app->get ('/api/test', ProxyController::class . ':proxy')->setName('api.proxy.test')->setArgument('endpoint', $settings['glued']['protocol'] . $settings['glued']['hostname'] . '/api/core/healthcheck/v1/be');
 

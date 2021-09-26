@@ -134,11 +134,11 @@
       "mysqldump --lock-tables=false --single-transaction glued >> ./private/backups/db/`date +'%Y%m%dT%H%M%S'`-composer-full.sql"
     ],
     "configure": [
-      "Glued\\Core\\Install\\ComposerHooks::configTool",
+      "Glued\\Core\\Config\\ComposerHooks::configTool",
       "composer migrate"
     ],
     "migrate": [
-      "dbmate -d './glued/Core/Install/Migrations' -s './private/install/schema.sql' migrate"
+      "for dir in $(find ./glued/*/Config/Migrations -not -empty -type d) ; do dbmate -d \"${dir}\" -s './private/install/schema.sql' migrate; done;"
     ],
     "start": "php -S localhost:8080 -t public"
   }

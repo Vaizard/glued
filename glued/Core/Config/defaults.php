@@ -7,6 +7,67 @@ return [
      * OPTIONS THAT WILL MOST LIKELY CHANGE
      **********************************************************/
 
+    // Routes
+    'routes' => [
+        'app.core' => [
+            'label' => 'Core',
+            'icon' => 'fas fa-cog',
+        ],
+        'api.core' => [
+            'label' => 'Core',
+            'icon' => 'fas fa-cog',
+        ],
+        'app.core.auth.callback' => [
+            'label' => 'Authenticate',
+            'icon' => 'fas fa-sign-in-alt',
+        ],
+        'app.core.auth.signout' => [
+            'label' => 'Signout',
+            'icon' => 'fas fa-sign-in-alt',
+        ],
+        'app.core.auth.confidential.whoami' => [
+            'label' => 'Whoami',
+            'icon' => 'fas fa-user',
+        ],
+        'app.core.auth.confidential.adm' => [
+            'label' => 'Identity Adm',
+            'icon' => 'fas fa-user-cog',
+        ],
+        'api.core.adm.healthcheck.fe.v1' => [
+            'label' => 'Frontend Health',
+            'icon' => 'fas fa-heartbeat',
+        ],
+        'api.core.adm.healthcheck.be.v1' => [
+            'label' => 'Backend Health',
+            'icon' => 'fas fa-heartbeat',
+        ],
+        'app.core.home' => [
+            'label' => 'Home',
+            'icon' => 'fas fa-home',
+        ],
+        'app.core.phpinfo' => [
+            'label' => 'Phpinfo()',
+            'icon' => 'fab fa-php',
+        ],
+        'app.core.phpconst' => [
+            'label' => 'Phpconst()',
+            'icon' => 'fab fa-php',
+        ],
+        'app.core.auth.enforce' => [
+            'label' => 'Authorize',
+            'icon' => 'fas fa-key',
+        ],
+        'api.core.routes.v1' => [
+            'label' => 'Routes (v1)',
+            'icon' => 'fas fa-sitemap',
+        ],
+        'api.core.ui.routetree.v1' => [
+            'label' => 'Route tree (v1)',
+            'icon' => 'fas fa-sitemap',
+        ],
+    ],
+
+
     // Slim
     'displayErrorDetails' => true, // Set to false in production
     'logErrors' => true,
@@ -17,6 +78,7 @@ return [
     'glued' => [
         'timezone' => 'Europe/Prague',
         'hostname' => $_SERVER['SERVER_NAME'] ?? null, // Main domain name (i.e. if $_SERVER is not available)
+        'protocol' => 'https://',
     ],
 
     // Database
@@ -29,61 +91,6 @@ return [
         'collation' => ' utf8mb4_unicode_ci'
     ],
 
-    /**
-     * Session cookies configuration (consumed by the @see
-     * SessionMiddleware). Changing these defaults may compromise
-     * security (i.e. break CSRF protection). See 
-     * @link https://scotthelme.co.uk/csrf-is-really-dead/.
-     */
-    /*
-    'auth' => [
-        'cookie' => [
-            // Common cookie config for both session and jwt cookies
-            'lifetime'  => 0,     // 0 = until browser is closed
-            'path'      => '/',
-            'domain'    => $_SERVER['SERVER_NAME'] ?? null,
-            'secure'    => true,
-            'httponly'  => true,
-            'samesite'  => 'Lax',
-        ],
-        'session' => [
-            // middleware params
-            'cookie'    => 'g_sid', // session cookie name
-            'callback'  => function () {},
-        ],
-        'jwt' => [
-            // token params
-            'expiry'    => '60 minute',
-            'secret'    => $_ENV['SECRET_JWT'] ?? 'some-secret', // a config.d fragment file will be generated with a correct key
-            'algorithm' => 'HS512',
-            // middleware params
-            'path'      => [ '/api' ],
-            'ignore'    => [ '/api/core/v1/auth/whoami', '/api/core/v1/auth/signin', '/api/core/v1/auth/update', '/api/integrations/v1/qrpay', '/api/core/v1/adm/healtcheck/fe', '/api/core/v1/adm/healtcheck/be', '/api/core/v1/adm/routes' ],
-            'attribute' => 'auth_jwt',
-            'secure'    => 'true', // require jwt over https (NOTE You can really screw up your security with this)
-            'relaxed'   => ["localhost", "127.0.0.1" ], // https not enforced for requests from relaxed whitelist (NOTE You can really screw up your security with this)
-            "cookie"    => 'g_tok', // jwt cookie name
-            "before" => function ($response, $params) use (&$decoded, &$token) {},
-            "after" => function ($response, $params) use (&$decoded, &$token) {},
-            "error" => function ($response, $arguments) use (&$decoded) {
-
-                $payload_exp = $decoded['exp'] ?? 0;
-                $expired_ago = $payload_exp - (new \DateTime())->getTimeStamp();
-
-                $data['api'] =  'core/auth/jwt';
-                $data['version'] = '1';
-                $data['response_ts'] = time();
-                $data['response_id'] = uniqid();
-                $data['status'] = 'Forbidden.';
-                $data['message'] = 'You must be signed in to do this, please provide a valid token.';
-                if ($expired_ago < 0) $data['message'] .= ' (expired)';
-                $data['code'] = 403;
-                $response->getBody()->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-                return $response->withHeader("Content-Type", "application/json");
-            },
-        ],
-    ],
-*/
     // Geoip
     'geoip' => [
         'geoip_engine' => false,    // Providers: [ false, 'maxmind']. Override to 'maxmind' when maxmind license key is set.

@@ -10,11 +10,13 @@ class Utils
 
     protected $db;
     protected $settings;
+    protected $routecollector;
 
 
-    public function __construct($db, $settings) {
+    public function __construct($db, $settings, $routecollector) {
         $this->db = $db;
         $this->settings = $settings;
+        $this->routecollector = $routecollector;
     }
 
     public function default_locale(string $language): string {
@@ -100,5 +102,104 @@ class Utils
     public function concat($delimeter, array $arrayOfStrings): string {
       return trim(implode($delimeter, array_filter(array_map('trim',$arrayOfStrings))));
     }
+
+
+    public function array_unflatten($collection) {
+        $collection = (array) $collection;
+        $output = array();
+        foreach ($collection as $key => $value) {
+            $this->array_set( $output, $key, $value );
+            if (is_array($value) && !strpos($key, '.')) {
+                $nested = array_unflatten( $value );
+                $output[$key] = $nested;
+            }
+        }
+        return $output;
+    }
+
+
+    public function array_set( &$array, $key, $value )  {
+        if (is_null($key)) { return $array = $value; }
+        $keys = explode( '.', $key );
+        while (count($keys) > 1) {
+            $key = array_shift( $keys );
+            // If the key doesn't exist at this depth, we will just create an empty array
+            // to hold the next value, allowing us to create the arrays to hold final
+            // values at the correct depth. Then we'll keep digging into the array.
+            if (!isset($array[$key]) || !is_array($array[$key])) {
+                $array[$key] = array();
+            }
+            $array =& $array[$key];
+        }
+        $array[array_shift($keys)] = $value;
+        return $array;
+    }
+
+    /**
+     * String replace nth occurrence
+     * 
+     * @param type $search      Search string
+     * @param type $replace     Replace string
+     * @param type $subject     Source string
+     * @param type $occurrence  Nth occurrence
+     * @return type         Replaced string
+     */
+    public function str_replace_n($search, $replace, $subject, $occurrence): string {
+        $search = preg_quote($search);
+        return preg_replace("/^((?:(?:.*?$search){".--$occurrence."}.*?))$search/", "$1$replace", $subject);
+    }
+
+    public function get_routes($named = false): array {
+        $routes = $this->routecollector->getRoutes();
+        foreach ($routes as $route) {
+            $i = $route->getPattern();
+            $data[$i]['pattern'] = $route->getPattern();
+            $data[$i]['methods'] = array_merge($data[$i]['methods'] ?? [], $route->getMethods());
+            if ($route->getName()) $data[$i]['name'] = $route->getName();
+            if ($data[$i]['name'] != false) {
+                try {
+                    $data[$i]['url'] = $this->routecollector->getRouteParser()->urlFor($data[$i]['name']);
+                } catch (\InvalidArgumentException $e) { $data[$i]['argsrequired'] = true; }
+                $data[$i]['meta'] = $this->settings['routes'][$data[$i]['name']] ?? null;
+            } 
+        }
+        ksort($data, SORT_NATURAL);
+        return array_values($data);
+    }
+
+    public function get_named_routes($named = false): array {
+        $routes = $this->get_routes();
+        foreach ($routes as $route) {
+            if ($route['name']) { $res[$route['name']] = $route; }
+        }
+        return $res;
+    }
+
+    public function get_navigation(): array {
+        $routes = $this->get_named_routes(true);
+        foreach ($routes as $k => $v) {
+            // 3rd tier nodes (leafs)
+            $path = explode( '.', $k);
+            $item = $v;
+            $item['name'] = $k;
+            $item['label'] = $this->settings['routes'][$k]['label'] ?? null;
+            $item['icon'] = $this->settings['routes'][$k]['icon'] ?? null;
+            $r[$path[0]]['children'][$path[1]]['children'][]['node'] = $item;
+            // 2nd tier nodes
+            $item = null;
+            $item['label'] = $this->settings['routes'][$path[0].'.'.$path[1]]['label'] ?? null;
+            $item['icon'] = $this->settings['routes'][$path[0].'.'.$path[1]]['icon'] ?? null;
+            $item['type'] = 'routegroup';
+            $r[$path[0]]['children'][$path[1]]['node'] = $item;            
+            // 1st tier nodes
+            $item = null;
+            $item['label'] = $this->settings['routes'][$path[0]]['label'] ?? null;
+            $item['icon'] = $this->settings['routes'][$path[0]]['icon'] ?? null;
+            $item['type'] = 'routegroup';
+            $r[$path[0]]['node'] = $item;   
+        }
+        return $r;
+    }
+
 
 }

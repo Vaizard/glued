@@ -101,8 +101,8 @@ class Auth
         if (!$hit) {
             $json = (string) $this->utils->fetch_uri($oidc['uri']['discovery']) ?? ''; 
             $conf = (array) json_decode($json);
-            if ($conf == []) throw new AuthOidcException('Identity backend returned empty resultset, backend down?');
-            if ($conf['issuer'] != $oidc['uri']['realm']) throw new AuthOidcException('Identity backend configuration mismatch.');
+            if ($conf == []) throw new AuthOidcException('Identity server connection failure, please reload this page.');
+            if ($conf['issuer'] != $oidc['uri']['realm']) throw new AuthOidcException('Identity server configuration mismatch.');
             $this->fscache->set('glued_oidc_uri_discovery', $json, 300); // TODO make the 300s value configurable
         }
 
@@ -115,8 +115,8 @@ class Auth
         if (!$hit) {
             $json = (string) $this->utils->fetch_uri($oidc['uri']['jwks']) ?? '';
             $jwks = (array) json_decode($json);
-            if ($conf == []) throw new AuthOidcException('Identity backend returned empty resultset., backend down?');
-            if (!isset($jwks['keys'])) throw new AuthOidcException('Identity backend certs mismatch.');
+            if ($conf == []) throw new AuthOidcException('Identity server connection failure, please reload this page.');
+            if (!isset($jwks['keys'])) throw new AuthOidcException('Identity server certificate mismatch.');
             $this->fscache->set('glued_oidc_uri_jwks', $json, 300); // TODO make the 300s value configurable
         }
 
@@ -158,14 +158,7 @@ class Auth
     // OTHER AUTH RELATED METHODS ////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////
 
-    public function getroutes() :? array {
-        $routes = $app->getContainer()->router->getRoutes();
-        $list=array();
-        foreach ($routes as $route) {
-            $list[]= $route->getPattern() .' '. json_encode($route->getMethods());
-          }
-        print_r($list);
-    }
+
 
     public function safeAddPolicy(object $e, object $m, string $section, string $type, array $rule) {
         if (!$m->hasPolicy($section, $type, $rule)) {

@@ -1,15 +1,22 @@
 <?php
 
 use Alcohol\ISO4217;
-use CasbinAdapter\Database\Adapter as DatabaseAdapter;
 use Casbin\Enforcer;
-use \Casbin\Util\BuiltinOperations;
+use Casbin\Util\BuiltinOperations;
 use DI\Container;
+use Facile\OpenIDClient\Client\ClientBuilder;
+use Facile\OpenIDClient\Client\Metadata\ClientMetadata;
+use Facile\OpenIDClient\Issuer\IssuerBuilder;
+use Facile\OpenIDClient\Service\Builder\AuthorizationServiceBuilder;
 use Glued\Core\Classes\Auth\Auth;
 use Glued\Core\Classes\Utils\Utils;
 use Glued\Core\Middleware\TranslatorMiddleware;
 use Glued\Stor\Classes\Stor;
 use Goutte\Client;
+use GuzzleHttp\Client as Guzzle;
+use Http\Discovery\Psr17FactoryDiscovery;
+use Keiko\Uuid\Shortener\Dictionary;
+use Keiko\Uuid\Shortener\Shortener;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Monolog\Processor\UidProcessor;
@@ -19,35 +26,19 @@ use Odan\Twig\TwigTranslationExtension;
 use Phpfastcache\CacheManager;
 use Phpfastcache\Config\Config;
 use Phpfastcache\Helper\Psr16Adapter;
-use Psr\Log\LoggerInterface;
 use Sabre\Event\Emitter;
-use Slim\App;
-use Slim\Factory\AppFactory;
+use Selective\Transformer\ArrayTransformer;
 use Slim\Flash\Messages;
-use Slim\Interfaces\RouteParserInterface;
 use Slim\Views\Twig;
 use Symfony\Component\Translation\Formatter\MessageFormatter;
 use Symfony\Component\Translation\IdentityTranslator;
 use Symfony\Component\Translation\Loader\MoFileLoader;
 use Symfony\Component\Translation\Translator;
-use Twig\Loader\FilesystemLoader;
 use Twig\TwigFilter;
-use Twig\TwigFunction;
 use voku\helper\AntiXSS;
-use Keycloak\Admin\KeycloakClient;
-use Facile\OpenIDClient\Client\ClientBuilder;
-use Facile\OpenIDClient\Issuer\IssuerBuilder;
-use Facile\OpenIDClient\Client\Metadata\ClientMetadata;
-use Facile\OpenIDClient\Service\Builder\AuthorizationServiceBuilder;
-use Facile\OpenIDClient\Service\Builder\UserInfoServiceBuilder;
 use VStelmakh\UrlHighlight\UrlHighlight;
 use VStelmakh\UrlHighlightTwigExtension\UrlHighlightExtension;
-use Keiko\Uuid\Shortener\Dictionary;
-use Keiko\Uuid\Shortener\Shortener;
-use Selective\Transformer\ArrayTransformer;
-use GuzzleHttp\Client as Guzzle;
-use Http\Discovery\Psr17FactoryDiscovery;
-use Http\Discovery\Psr18ClientDiscovery;
+
 
 
 
@@ -56,7 +47,10 @@ $container->set('events', function () {
 });
 
 $container->set('settings', function() {
-    $ret = require_once(__ROOT__ . '/config/defaults.php');
+    $ret = [];
+    foreach (glob(__ROOT__ . '/glued/*/Config/defaults.php') as $configfile) {
+        $ret = array_merge_recursive($ret, require_once($configfile));
+    }
     foreach (glob(__ROOT__ . '/config/config.d/*.php') as $configfile) {
         $ret = array_replace_recursive($ret, require_once($configfile));
     }
@@ -210,7 +204,6 @@ $container->set('view', function (Container $c) {
     $environment->addFilter(new TwigFilter('humanize', function ($string) {
         return \trim(\strtolower((string) \preg_replace(['/([A-Z])/', \sprintf('/[%s\s]+/', '_')], ['_$1', ' '], $string)));
     }));
-    
     return $twig;
 });
 
@@ -272,7 +265,7 @@ $container->set('auth', function (Container $c) {
 });
 
 $container->set('utils', function (Container $c) {
-    return new Utils($c->get('db'), $c->get('settings'));
+    return new Utils($c->get('db'), $c->get('settings'), $c->get('routecollector'));
 });
 
 $container->set('stor', function (Container $c) {

@@ -1,5 +1,5 @@
 <?php
-namespace Glued\Core\Install;
+namespace Glued\Core\Config;
 use Composer\Script\Event;
 use Glued\Core\Classes\Crypto\Crypto;
 

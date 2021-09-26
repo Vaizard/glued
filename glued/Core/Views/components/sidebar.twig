@@ -1,144 +1,21 @@
 <ul class="sidebar-menu">
   <li class="menu-header">{{ __('System') }}</li>
   <li class="active">
-    <a href="{{ url_for('core.dashboard.web') }}" class="nav-link"><i class="fas fa-fire"></i><span>{{ __('Dashboard') }}</span></a>
+    <a href="{{ url_for('app.core.home') }}" class="nav-link"><i class="fas fa-home"></i><span>{{ __('Home') }}</span></a>
   </li>
-  <li class="dropdown">
-    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-user"></i> <span>{{ __('Account') }}</span></a>
-    <ul class="dropdown-menu">
-      {% if enforce('/ui/core/profiles/self') %}<li><a class="nav-link" href="{{ url_for('core.profiles.list.web') }}/self">{{ __('My profile') }}</a></li>{% endif %}
-      {% if enforce('/ui/core/accounts/self') %}<li><a class="nav-link" href="{{ url_for('core.accounts.list.web') }}/{{ authn.u_uid }}">{{ __('My account') }}</a></li>{% endif %}
-      {% if enforce('/ui/core/accounts') %}<li><a class="nav-link" href="{{ url_for('core.accounts.list.web') }}">{{ __('Manage accounts') }}</a></li>{% endif %}
-      {% if enforce('/ui/core/domains') %}<li><a class="nav-link" href="{{ url_for('core.domains') }}">{{ __('Manage domains') }}</a></li>{% endif %}
-    </ul>
-  </li>
-  {% if enforce('/ui/admin') %}
-  <li class="dropdown">
-    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-terminal"></i> <span>{{ __('Admin') }}</span></a>
-    <ul class="dropdown-menu">
-      <li><a class="nav-link" href="{{ url_for('core.admin.enforcer.app') }}">Casbin Enforcer</a></li>
-      <li><a class="nav-link" href="{{ url_for('core.admin.phpinfo.web') }}">phpinfo()</a></li>
-      <li><a class="nav-link" href="{{ url_for('core.admin.phpconst.web') }}">get_defined_constants()</a></li>
-      <li><a class="nav-link" href="{{ url_for('core.admin.playground.web') }}">Playground closure</a></li>
-    </ul>
-  </li>
-  {% endif %}
-  {% if enforce('/ui/api') %}
-  <li>
-    <a href="{{ url_for('core.api') }}" class="nav-link"><i class="fas fa-code"></i><span>Api</span></a>
-  </li>
-  {% endif %}
 
-
-  <li class="menu-header">{{ __('Apps') }}</li>
-  {% if enforce('/ui/stor') %}
-  <li>
-    <a href="{{ url_for('stor.browser') }}" class="nav-link"><i class="fas fa-file"></i><span>{{ __('Stor browser') }}</span></a>
-  </li>
-  {% endif %}
-  {% if enforce('/ui/membership') %}
-  <li class="dropdown">
-    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-clipboard-check"></i> <span>{{ __('Membership') }}</span></a>
-    <ul class="dropdown-menu">
-      <li><a class="nav-link" href="#">{{ __('Status') }}</a></li>
-      <li><a class="nav-link" href="#">{{ __('Ballance') }}</a></li>
-    </ul>
-  </li>
-  {% endif %}
-  {% if enforce('/ui/worklog') %}
-  <li class="dropdown">
-    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-briefcase"></i> <span>{{ __('Worklog') }}</span></a>
-    <ul class="dropdown-menu">
-      <li><a class="nav-link" href="{{ url_for('worklog.me') }}">{{ __('What I did today') }}</a></li>
-      <li><a class="nav-link" href="{{ url_for('worklog.we') }}">{{ __('Team log') }}</a></li>
-    </ul>
-  </li>
-  {% endif %}
-  {% if enforce('/ui/contacts') %}
-  <li class="dropdown">
-    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-address-book"></i> <span>{{ __('Contacts') }}</span></a>
-    <ul class="dropdown-menu">
-      <li><a class="nav-link" href="{{ url_for('contacts.collection') }}">{{ __('List') }}</a></li>
-    </ul>
-  </li>
-  {% endif %}
-  {% if enforce('/ui/store') %}
-  <li class="dropdown">
-    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-shopping-cart"></i> <span>{{ __('Store') }}</span></a>
-    <ul class="dropdown-menu">
-      <li><a class="nav-link" href="{{ url_for('store.sellers') }}">{{ __('Sellers') }}</a></li>
-      <li><a class="nav-link" href="{{ url_for('store.items') }}">{{ __('Items') }}</a></li>
-      <li><a class="nav-link" href="{{ url_for('store.subscriptions') }}">{{ __('Subscriptions') }}</a></li>
-      <li><a class="nav-link" href="{{ url_for('store.tickets') }}">{{ __('Tickets') }}</a></li>
-    </ul>
-  </li>
-  {% endif %}
-  {% if enforce('/ui/mail') %}
-  <li class="dropdown">
-    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-mail-bulk"></i> <span>{{ __('Mail') }}</span></a>
-    <ul class="dropdown-menu">
-      <li><a class="nav-link" href="{{ url_for('mail.accounts.web') }}">{{ __('Accounts') }}</a></li>
-      <li><a class="nav-link" href="{{ url_for('mail.opera.web') }}">{{ __('Opera') }}</a></li>
-    </ul>
-  </li>
-  {% endif %}
-  {% if enforce('/ui/spider') %}
-  <li class="dropdown">
-    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-spider"></i> <span>{{ __('Spider') }}</span></a>
-    <ul class="dropdown-menu">
-      <li><a class="nav-link" href="{{ url_for('spider.browse.web') }}">Browse</a></li>
-    </ul>
-  </li>
-  {% endif %}
-  {% if enforce('/ui/enterprise') %}
-  <li class="dropdown">
-    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-project-diagram"></i> <span>{{ __('Enterprise') }}</span></a>
-    <ul class="dropdown-menu">
-      <li><a class="nav-link" href="{{ url_for('enterprise.projects') }}">{{ __('Projects') }}</a></li>
-      <li><a class="nav-link" href="{{ url_for('enterprise.opportunities') }}">{{ __('Opportunities') }}</a></li>
-    </ul>
-  </li>
-  {% endif %}
-  {% if enforce('/ui/calendar') %}
-  <li class="dropdown">
-    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-calendar"></i> <span>{{ __('Calendar') }}</span></a>
-    <ul class="dropdown-menu">
-      <li><a class="nav-link" href="{{ url_for('calendar.events') }}">{{ __('Events') }}</a></li>
-      <li><a class="nav-link" href="{{ url_for('calendar.sources') }}">{{ __('Manage calendars') }}</a></li>
-    </ul>
-  </li>
-  {% endif %}
-  {% if enforce('/ui/fin') %}
-  <li class="dropdown">
-    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-credit-card"></i> <span>{{ __('Fin') }}</span></a>
-    <ul class="dropdown-menu">
-      <li><a class="nav-link" href="{{ url_for('fin.trx') }}">{{ __('Transactions') }}</a></li>
-      <li><a class="nav-link" href="{{ url_for('fin.trx') }}/reduce-iban/dtfrom=2020-01-01">{{ __('Trx by IBAN') }}</a></li>
-      <li><a class="nav-link" href="{{ url_for('fin.accounts') }}">{{ __('Accounts') }}</a></li>
-      <li><a class="nav-link" href="{{ url_for('fin.costs') }}">{{ __('Costs') }}</a></li>
-    </ul>
-  </li>
-  {% endif %}
-  {% if enforce('/ui/integrations') %}
-  <li class="dropdown">
-    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-plug"></i> <span>{{ __('Integrations') }}</span></a>
-    <ul class="dropdown-menu">
-      <li><a class="nav-link" href="{{ url_for('integrations.google.list') }}">{{ __('Google sheets') }}</a></li>
-      <li><a class="nav-link" href="{{ url_for('intagrations.csob.app') }}">CSOB</a></li>
-      <li><a class="nav-link" href="{{ url_for('intagrations.qrpay.api01') }}">QR platba</a></li>
-      <li><a class="nav-link" href="{{ url_for('core.integrations.google') }}">Google</a></li>
-      <li><a class="nav-link" href="{{ url_for('core.integrations.fio_cz') }}">Fio.cz</a></li>
-    </ul>
-  </li>
-  {% endif %}
-  {% if enforce('/ui/dev') %}
-  <li class="menu-header">Docs &amp; tutorials</li>
-  <li>
-    <a href="#" class="nav-link has-dropdown"><i class="fas fa-graduation-cap"></i><span>Tutorial</span></a>
-    <ul class="dropdown-menu">
-      <li><a class="nav-link" href="/tutorial/">Tutorial home</a></li>
-      <li><a class="nav-link" href="/tutorial/01">Controllers</a></li>
-    </ul>
-  </li>
-  {% endif %}
+  {% for k,v in routes %}
+     <li class="menu-header">{{ __(v.node.label | default(k))  | capitalize }}</li>
+     {% for kk,vv in v.children %}
+        <li class="dropdown">
+          <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="{{ vv.node.icon }}"></i> <span>{{ __(vv.node.label | default(kk)) | capitalize }}</span></a>
+          <ul class="dropdown-menu">
+          {% for kkk,vvv in vv.children %}
+            <li><a href="{{ vvv.node.url }}" class="nav-link"><i class="{{ vvv.node.icon | default('fas fa-fire') }}" style="margin-right: 0.1em; margin-left:0em"></i><span>
+            {{ __(vvv.node.label | default(vvv.node.name | replace({'.': ' '}) | capitalize)) }}</span></a></li>
+          {% endfor %}
+          </ul>
+        </li>
+    {% endfor %}
+  {% endfor %}
 </ul>

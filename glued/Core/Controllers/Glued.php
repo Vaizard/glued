@@ -21,7 +21,8 @@ class Glued extends AbstractTwigController
      */
     public function __invoke(Request $request, Response $response, array $args = []): Response
     {
-        return $this->render($response, 'Core/Views/pages/main.twig', []);
+        $routes = $this->utils->get_navigation();
+        return $this->render($response, 'Core/Views/pages/main.twig', [ 'routes' => $routes ]);
     }
 
     public function signin(Request $request, Response $response, array $args = []): Response
