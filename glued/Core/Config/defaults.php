@@ -73,6 +73,7 @@ return [
     'logErrors' => true,
     'logErrorDetails' => true,
     'debugEngine' => 'Whoops', // Error | Whoops
+    'determineRouteBeforeAppMiddleware' => true,
 
     // Glued globals
     'glued' => [

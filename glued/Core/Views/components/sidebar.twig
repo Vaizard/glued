@@ -1,17 +1,17 @@
 <ul class="sidebar-menu">
   <li class="menu-header">{{ __('System') }}</li>
-  <li class="active">
+  <li>
     <a href="{{ url_for('app.core.home') }}" class="nav-link"><i class="fas fa-home"></i><span>{{ __('Home') }}</span></a>
   </li>
 
   {% for k,v in routes %}
      <li class="menu-header">{{ __(v.node.label | default(k))  | capitalize }}</li>
      {% for kk,vv in v.children %}
-        <li class="dropdown">
+        <li class="dropdown{% if vv.node.current == true %} active{% endif %}">
           <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="{{ vv.node.icon }}"></i> <span>{{ __(vv.node.label | default(kk)) | capitalize }}</span></a>
           <ul class="dropdown-menu">
           {% for kkk,vvv in vv.children %}
-            <li><a href="{{ vvv.node.url }}" class="nav-link"><i class="{{ vvv.node.icon | default('fas fa-fire') }}" style="margin-right: 0.1em; margin-left:0em"></i><span>
+            <li {% if vvv.node.current == true %} class="active"{% endif %}><a href="{{ vvv.node.url }}" class="nav-link"><i class="{{ vvv.node.icon | default('fas fa-fire') }}" style="margin-right: 0.1em; margin-left:0em"></i><span>
             {{ __(vvv.node.label | default(vvv.node.name | replace({'.': ' '}) | capitalize)) }}</span></a></li>
           {% endfor %}
           </ul>

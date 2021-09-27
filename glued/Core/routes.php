@@ -31,7 +31,7 @@ $app->group('/core', function (RouteCollectorProxy $route) {
 
 $app->group('/api/core', function (RouteCollectorProxy $route) {
     $route->get ('/routes/v1', AdmController::class . ':routes')->setName('api.core.routes.v1');
-    $route->get ('/ui/routetree/v1', AdmController::class . ':ui')->setName('api.core.routetree.v1');
+    $route->get ('/ui/routetree/v1', AdmController::class . ':ui')->setName('api.core.ui.routetree.v1');
     $route->get ('/healthcheck/v1/fe', ProxyController::class . ':fe_healthcheck')->setName('api.core.adm.healthcheck.fe.v1')->setArgument('x', 'y');//->setArguments(['becva' => 'lala']);
     $route->get ('/healthcheck/v1/be', ProxyController::class . ':be_healthcheck')->setName('api.core.adm.healthcheck.be.v1');
 });

@@ -24,7 +24,8 @@ class AdmController extends AbstractTwigController
     }
 
     public function ui(Request $request, Response $response, array $args = []): Response {
-        $data = $this->utils->get_navigation();
+        $data = $this->utils->get_navigation( $this->utils->get_current_route($request) );
+
         return $response->withJson($data);
     }
 

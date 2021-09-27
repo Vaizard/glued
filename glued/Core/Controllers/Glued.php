@@ -8,6 +8,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Glued\Core\Classes\Users;
 use Glued\Core\Classes\Utils;
+use Slim\Routing\RouteContext;
 
 
 class Glued extends AbstractTwigController
@@ -21,7 +22,7 @@ class Glued extends AbstractTwigController
      */
     public function __invoke(Request $request, Response $response, array $args = []): Response
     {
-        $routes = $this->utils->get_navigation();
+        $routes = $this->utils->get_navigation( $this->utils->get_current_route($request) );
         return $this->render($response, 'Core/Views/pages/main.twig', [ 'routes' => $routes ]);
     }
 

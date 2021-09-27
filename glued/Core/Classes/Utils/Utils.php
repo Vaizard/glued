@@ -3,6 +3,7 @@ namespace Glued\Core\Classes\Utils;
 //use Respect\Validation\Validator as v;
 //use UnexpectedValueException;
 use Exception;
+use Slim\Routing\RouteContext;
 
 class Utils
 {
@@ -118,7 +119,7 @@ class Utils
     }
 
 
-    public function array_set( &$array, $key, $value )  {
+    public function array_set(&$array, $key, $value)  {
         if (is_null($key)) { return $array = $value; }
         $keys = explode( '.', $key );
         while (count($keys) > 1) {
@@ -160,7 +161,8 @@ class Utils
                 try {
                     $data[$i]['url'] = $this->routecollector->getRouteParser()->urlFor($data[$i]['name']);
                 } catch (\InvalidArgumentException $e) { $data[$i]['argsrequired'] = true; }
-                $data[$i]['meta'] = $this->settings['routes'][$data[$i]['name']] ?? null;
+                $data[$i]['label'] = $this->settings['routes'][$data[$i]['name']]['label'] ?? null;
+                $data[$i]['icon'] = $this->settings['routes'][$data[$i]['name']]['icon'] ?? null;
             } 
         }
         ksort($data, SORT_NATURAL);
@@ -175,29 +177,39 @@ class Utils
         return $res;
     }
 
-    public function get_navigation(): array {
+    public function get_current_route($request): string {
+        $routeContext = RouteContext::fromRequest($request);
+        $route = $routeContext->getRoute();
+        return $route->getName();
+    }
+
+    public function get_navigation($current_route = null): array {
         $routes = $this->get_named_routes(true);
         foreach ($routes as $k => $v) {
             // 3rd tier nodes (leafs)
             $path = explode( '.', $k);
             $item = $v;
+            if ($k === $current_route) { 
+                $item['current'] = true; 
+                $append[$path[0]]['children'][$path[1]]['node']['current'] = true;
+                $append[$path[0]]['node']['current'] = true;
+            }
             $item['name'] = $k;
-            $item['label'] = $this->settings['routes'][$k]['label'] ?? null;
-            $item['icon'] = $this->settings['routes'][$k]['icon'] ?? null;
+            $item['type'] = 'route';
             $r[$path[0]]['children'][$path[1]]['children'][]['node'] = $item;
             // 2nd tier nodes
             $item = null;
             $item['label'] = $this->settings['routes'][$path[0].'.'.$path[1]]['label'] ?? null;
             $item['icon'] = $this->settings['routes'][$path[0].'.'.$path[1]]['icon'] ?? null;
             $item['type'] = 'routegroup';
-            $r[$path[0]]['children'][$path[1]]['node'] = $item;            
+            $r[$path[0]]['children'][$path[1]]['node'] = $item;
             // 1st tier nodes
-            $item = null;
             $item['label'] = $this->settings['routes'][$path[0]]['label'] ?? null;
             $item['icon'] = $this->settings['routes'][$path[0]]['icon'] ?? null;
             $item['type'] = 'routegroup';
             $r[$path[0]]['node'] = $item;   
         }
+        $r = array_merge_recursive($r, $append);
         return $r;
     }
 
