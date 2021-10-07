@@ -31,13 +31,13 @@
                 {% verbatim %}
                 <script type="text/twig" id="contacts_items_obj_twig">
                 <tr id="contacts_items_object_{{ row.id }}">
-                  <td class="col-sm-2" style="z-index: 1;">{{ row.fn }}{% if row.uri.0.value %}<a href="{{ row.uri.0.value }}" style="z-index: 2; position: relative;"><i class="fas fa-link"></i></a>{% endif %}{% if row.context.bday %}<i class="fas fa-birthday-cake" style="color: red;"></i>{% endif %}<a href="{% endverbatim %}{{ url_for('contacts.collection') }}{% verbatim %}/{{ row.id }}" class="stretched-link"></a></td>
-                  <td class="col-sm-3">{{ row.addr.0.full | default(row.addr.0.unstructured) }}<a href="{% endverbatim %}{{ url_for('contacts.collection') }}{% verbatim %}/{{ row.id }}" class="stretched-link"></a></td>
-                  <td class="col-sm-1">{{ row.nat.0.regid | default('') }}<a href="{% endverbatim %}{{ url_for('contacts.collection') }}{% verbatim %}/{{ row.id }}" class="stretched-link"></a></td>
-                  <td class="col-sm-1">{{ row.nat.0.vatid | default('') }}<a href="{% endverbatim %}{{ url_for('contacts.collection') }}{% verbatim %}/{{ row.id }}" class="stretched-link"></a></td>
-                  <td class="col-sm-2">{{ row.email.0.value | default('') }}<a href="{% endverbatim %}{{ url_for('contacts.collection') }}{% verbatim %}/{{ row.id }}" class="stretched-link"></a></td>
-                  <td class="col-sm-1">{{ row.phone.0.value | default('') }}<a href="{% endverbatim %}{{ url_for('contacts.collection') }}{% verbatim %}/{{ row.id }}" class="stretched-link"></a></td>
-                  <td class="col-sm-1">{{ row.tags | default('') }}<a href="{% endverbatim %}{{ url_for('contacts.collection') }}{% verbatim %}/{{ row.id }}" class="stretched-link"></a></td>
+                  <td class="col-sm-2" style="z-index: 1;">{{ row.fn }}{% if row.uri.0.value %}<a href="{{ row.uri.0.value }}" style="z-index: 2; position: relative;"><i class="fas fa-link"></i></a>{% endif %}{% if row.context.bday %}<i class="fas fa-birthday-cake" style="color: red;"></i>{% endif %}<a href="{% endverbatim %}{{ url_for('app.contacts') }}{% verbatim %}/{{ row.id }}" class="stretched-link"></a></td>
+                  <td class="col-sm-3">{{ row.addr.0.full | default(row.addr.0.unstructured) }}<a href="{% endverbatim %}{{ url_for('app.contacts') }}{% verbatim %}/{{ row.id }}" class="stretched-link"></a></td>
+                  <td class="col-sm-1">{{ row.nat.0.regid | default('') }}<a href="{% endverbatim %}{{ url_for('app.contacts') }}{% verbatim %}/{{ row.id }}" class="stretched-link"></a></td>
+                  <td class="col-sm-1">{{ row.nat.0.vatid | default('') }}<a href="{% endverbatim %}{{ url_for('app.contacts') }}{% verbatim %}/{{ row.id }}" class="stretched-link"></a></td>
+                  <td class="col-sm-2">{{ row.email.0.value | default('') }}<a href="{% endverbatim %}{{ url_for('app.contacts') }}{% verbatim %}/{{ row.id }}" class="stretched-link"></a></td>
+                  <td class="col-sm-1">{{ row.phone.0.value | default('') }}<a href="{% endverbatim %}{{ url_for('app.contacts') }}{% verbatim %}/{{ row.id }}" class="stretched-link"></a></td>
+                  <td class="col-sm-1">{{ row.tags | default('') }}<a href="{% endverbatim %}{{ url_for('app.contacts') }}{% verbatim %}/{{ row.id }}" class="stretched-link"></a></td>
                   <td class="col-sm-1">
                     <button type="button" class="btn btn-icon btn-sm" data-toggle="modal" data-target="#contacts_items_update_modal" data-id="{{ row.id }}" data-uri="{{ row.uri }}" data-name="{{ row.name }}" data-domain="{{ row.domain }}" data-driver="{{ row.driver }}"><i class="fas fa-edit"></i></button><button type="button" class="btn btn-icon btn-sm" data-toggle="modal" data-target="#contacts_items_delete_modal" data-id="{{ row.id }}" data-uri="{{ row.uri }}" data-name="{{ row.name }}"><i class="fas fa-trash"></i></button>
                   </td>
@@ -71,7 +71,7 @@
   // 
   $( document ).ready(function() {
     $.ajax({
-      url: "{{ url_for('contacts.items.api01') }}",
+      url: "{{ url_for('api.contacts.v1') }}",
       contentType: "application/json",
       dataType: 'json',
       success: function(res) {
@@ -87,7 +87,7 @@
     var modal = $(this)
     var e = $(event.relatedTarget) // event which triggered the modal
     modal.find('.modal-title').text('{{ __("Edit contact") }} ' + e.data('id'));
-    modal.find('.modal-dialog form').attr('action', '{{ url_for("contacts.items.api01") }}/' + e.data('id') );
+    modal.find('.modal-dialog form').attr('action', '{{ url_for("api.contacts.v1") }}/' + e.data('id') );
     modal.find('.modal-body input[name="name"]').val(e.data('name'));
     modal.find('.modal-body input[name="uri"]').val(e.data('uri'));
   });
@@ -102,7 +102,7 @@
     var modal = $(this)
     var e = $(event.relatedTarget) // event which triggered the modal
     modal.find('.modal-title').text('{{ __("Delete contact") }} ' + e.data('id'));
-    modal.find('.modal-dialog form').attr('action', '{{ url_for("contacts.items.api01") }}/' + e.data('id') );
+    modal.find('.modal-dialog form').attr('action', '{{ url_for("api.contacts.v1") }}/' + e.data('id') );
     modal.find('.modal-body').text('{{ __("Do you really want to delete the contact:") }} ' + e.data('name') + ' (' + e.data('uri') + ')?');
   });
 
@@ -146,7 +146,7 @@
       $('#contacts_items_update_modal').modal('toggle');
       $('#contacts_items_placeholder').empty();
       $.ajax({
-        url: "{{ url_for('contacts.items.api01') }}",
+        url: "{{ url_for('api.contacts.v1') }}",
         contentType: "application/json",
         dataType: 'json',
         success: function(res) {
