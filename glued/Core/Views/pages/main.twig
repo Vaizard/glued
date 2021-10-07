@@ -23,20 +23,8 @@
           </div>
 
           <div class="section-body">
-            <a href="/auth/signup" class="btn btn-primary btn-icon-split md2">Sign up</a>
-            <a href="/auth/signin" class="btn btn-primary btn-icon-split">Sign in</a>
-            <a href="/auth/whoami" class="btn btn-primary btn-icon-split">Whoami</a>
-            <a href="/api/core/v1/adm/healtcheck/fe?greetings=hello&who=world" class="btn btn-primary btn-icon-split">Api front</a>
-            <a href="/api/core/v1/adm/healtcheck/be?greetings=hello&who=world" class="btn btn-primary btn-icon-split">Api back</a>
-            <br><br>
-            <br><br>
-    <h1>Teh JS demo</h1>
-    <div><code>Refresh token: <span id="refreshtoken"></span></code></div>
-    <div><code>Access token: <span id="accesstoken"></span></code></div>
-    <div><code>ID token: <span id="idtoken"></span></code></div>
-    <div><button id="initiate">Initiate login</button> <button id="simulate200">Simulate normal request</button><button id="simulate401">Simulate expired access token request (should use refresh token to get new one)</button></div>
-    <pre><code id="response"></code></pre><br>
-<br>
+
+
     <h1>Puff</h1>
     core-users {{ core_users }}<br><br>
     jwtclaims <pre>{{ jwt_claims | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_SLASHES'))  | urls_to_html }}</pre>

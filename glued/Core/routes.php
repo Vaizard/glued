@@ -9,13 +9,14 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteCollectorProxy;
 
-
+//echo $settings['oidc']['uri']['logout']; die();
 // Homepage
 $app->get('/', Glued::class)->setName('app.core.home');
 
 $app->group('/core', function (RouteCollectorProxy $route) {
+    global $settings;
     $route->get ('/auth/callback', Glued::class . ':signin')->setName('app.core.auth.callback');
-    $route->get ('/auth/signout', AuthController::class . ':keycloak_signout')->setName('app.core.auth.signout');
+    $route->get ('/auth/signout', Glued::class . ':signout')->setName('app.core.auth.signout');
     $route->get ('/auth/confidential/whoami', AuthController::class . ':keycloak_whoami')->setName('app.core.auth.confidential.whoami');
     $route->get ('/auth/confidential/adm', AuthController::class . ':keycloak_adm')->setName('app.core.auth.confidential.adm');
     $route->get ('/auth/enforce', AuthController::class . ':enforcer')->setName('app.core.auth.enforce');

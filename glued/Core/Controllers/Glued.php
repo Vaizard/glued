@@ -20,14 +20,19 @@ class Glued extends AbstractTwigController
      *
      * @return Response
      */
-    public function __invoke(Request $request, Response $response, array $args = []): Response
-    {
+    public function __invoke(Request $request, Response $response, array $args = []): Response {
         $routes = $this->utils->get_navigation( $this->utils->get_current_route($request) );
         return $this->render($response, 'Core/Views/pages/main.twig', [ 'routes' => $routes ]);
     }
 
-    public function signin(Request $request, Response $response, array $args = []): Response
-    {
+
+    public function signout(Request $request, Response $response, array $args = []): Response {
+        setcookie($this->settings['oidc']['cookie'], '', time()-3600, '/', $this->settings['glued']['hostname']);
+        return $response->withRedirect($this->settings['oidc']['uri']['logout'] . '?' . http_build_query([ 'redirect_uri' => $this->settings['glued']['protocol'] . $this->settings['glued']['hostname'] ]));
+    }
+
+
+    public function signin(Request $request, Response $response, array $args = []): Response {
         $caller = '';
         if ($enc = $request->getQueryParam('caller', $default = null)) {
                 $caller = $this->crypto->decrypt( $enc , $this->settings['crypto']['reqparams'] );

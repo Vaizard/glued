@@ -180,16 +180,6 @@ class AuthController extends AbstractTwigController
     }
 
 
-    public function keycloak_signout($request, $response) {
-        $client = $this->oidc_cli;
-        $authorizationService = $this->oidc_svc;
-        $revocationService = (new RevocationServiceBuilder())->build();
-        $callbackParams = $authorizationService->getCallbackParams($request, $client);
-         $tokenSet = $authorizationService->callback($client, $callbackParams);
-        $params = $revocationService->revoke($client, $tokenSet->getRefreshToken());
-        return $response;
-    }
-
 
     public function enforcer(Request $request, Response $response, array $args = []): Response {
 
