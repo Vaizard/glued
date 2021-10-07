@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Glued\IfGoogleContacts\Controllers;
 
-use Carbon\Carbon;
+/*use Carbon\Carbon;
 use Defr\Ares;
 use DragonBe\Vies\Vies;
 use DragonBe\Vies\ViesException;
@@ -13,17 +13,17 @@ use Glued\Contacts\Classes\CZ as CZ;
 use Glued\Contacts\Classes\EU;
 use Glued\Core\Classes\Json\JsonResponseBuilder;
 use Glued\Core\Classes\Utils\Utils;
-use Glued\Core\Controllers\AbstractTwigController;
 use Phpfastcache\CacheManager;
 use Phpfastcache\Config\Config;
-use Phpfastcache\Helper\Psr16Adapter;
+use Phpfastcache\Helper\Psr16Adapter;*/
+use Glued\Core\Controllers\AbstractTwigController;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Respect\Validation\Validator as v;
+/*use Respect\Validation\Validator as v;
 use Sabre\VObject;
 use Slim\Exception\HttpForbiddenException;
 use Slim\Exception\HttpInternalServerErrorException;
-use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\DomCrawler\Crawler;*/
 
 class IfGoogleContactsController extends AbstractTwigController
 {
@@ -32,7 +32,10 @@ class IfGoogleContactsController extends AbstractTwigController
      * Returns an authorized API client.
      * @return Google_Client the authorized client object
      */
-    private function getClient() {
+    private function getClient($request) {
+
+// https://console.cloud.google.com/apis/credentials
+// Create credentials -> OAuth Client ID
 
         $client = new \Google_Client();
         $client->setApplicationName('Google Sheets and PHP');
@@ -59,9 +62,15 @@ class IfGoogleContactsController extends AbstractTwigController
             } else {
                 // Request authorization from the user.
                 $authUrl = $client->createAuthUrl();
-                printf("Open the following link in your browser:\n%s\n", $authUrl);
-                print 'Enter verification code: ';
-                $authCode = trim(fgets(STDIN));
+                echo 'Open the following link in your browser: <a href="'.$authUrl.'">'.$authUrl.'</a>';
+                echo 'Enter verification code:';
+                $authCode = $request->getQueryParam('code', null);
+                if (is_null($authCode)) die('... the code!');
+
+
+                //printf("Open the following link in your browser:\n%s\n", $authUrl);
+                //print 'Enter verification code: ';
+                //$authCode = trim(fgets(STDIN));
 
                 // Exchange authorization code for an access token.
                 $accessToken = $client->fetchAccessTokenWithAuthCode($authCode);
@@ -70,7 +79,7 @@ class IfGoogleContactsController extends AbstractTwigController
                 // Check to see if there was an error.
                 if (array_key_exists('error', $accessToken)) {
                     throw new Exception(join(', ', $accessToken));
-                }
+                };
             }
             // Save the token to a file.
             if (!file_exists(dirname($tokenPath))) {
@@ -82,6 +91,10 @@ class IfGoogleContactsController extends AbstractTwigController
     }
 
 
+private function isnt_null($v) {
+   return (!is_null($v));
+}
+
     /**
      * @param Request  $request
      * @param Response $response
@@ -91,64 +104,62 @@ class IfGoogleContactsController extends AbstractTwigController
      */
 
      public function api01_get(Request $request, Response $response, array $args = []): Response {
-
+        self::isnt_null(null); 
     // Get the API client and construct the service object.
-    $client = $this->getClient();
-    $service = new Google_Service_PeopleService($client);
+    $client = $this->getClient($request);
+    $service = new \Google_Service_PeopleService($client);
 
     // Print the names for up to 10 connections.
-    $optParams = array(
-      'pageSize' => 10,
-      'personFields' => 'names,emailAddresses',
-    );
-    $results = $service->people_connections->listPeopleConnections('people/me', $optParams);
+    $result = [];
+    $pgcnt = 0;
+    $pageToken = NULL;
+    $optParams = [
+      'pageSize' => 500,
+      'personFields' => 'addresses,ageRanges,biographies,birthdays,calendarUrls,clientData,coverPhotos,emailAddresses,events,externalIds,genders,imClients,interests,locales,locations,memberships,metadata,miscKeywords,names,nicknames,occupations,organizations,phoneNumbers,photos,relations,sipAddresses,skills,urls,userDefined',
+    ];
+    //$results = $service->people_connections->listPeopleConnections('people/me', $optParams);
 
-    if (count($results->getConnections()) == 0) {
-      print "No connections found.\n";
-    } else {
-      print "People:\n";
-      foreach ($results->getConnections() as $person) {
-        if (count($person->getNames()) == 0) {
-          print "No names found for this connection\n";
-        } else {
-          $names = $person->getNames();
-          $name = $names[0];
-          printf("%s\n", $name->getDisplayName());
+
+    do {
+      try {
+        if ($pageToken) {
+          $optParams['pageToken'] = $pageToken;
         }
+
+        $resultobj = $service->people_connections->listPeopleConnections('people/me', $optParams);
+        $result = array_merge($result, (array)$resultobj->getConnections());
+        /* echo $pgcnt.' ----------------<br><br>';
+        foreach ($resultobj->getConnections() as $person) {
+           echo $person->getNames()[0]->getDisplayName().'<br>';
+        }*/
+        $pageToken = $resultobj->getNextPageToken();
+      } catch (\Exception $e) {
+        print "An error occurred: " . $e->getMessage();
+        $pageToken = NULL;
       }
-    }
+      $pgcnt++;
+    } while ($pageToken and ($pgcnt < 4));
 
-    return $response;
+    $result = json_decode(json_encode($result), true);
+    $result = $this->denull((array)$result);
 
-/*
-      $q = $request->getQueryParams();
-      $builder = new JsonResponseBuilder('contacts', 1);
-      $uid = $args['uid'] ?? null;
-      $filter = $q['filter'] ?? null;
-      $data = null;
-
-        if ($uid) {
-            $result = json_encode($this->contacts_get_sql($args));    
-            $data = json_decode($result);
-        } else {
-            $json = "t_contacts_objects.c_json";
-            if ($filter) {
-                $this->db->where('c_fn', "%$filter%", 'LIKE');
-            }
-            $result = $this->db->get('t_contacts_objects', null, [ $json ]) ?? null;
-            if ($result) {
-              $key = array_keys($result[0])[0];
-              foreach ($result as $obj) $data[] = json_decode($obj[$key]);
-            }
-        }     
-      $payload = $builder->withData((array)$data)->withCode(200)->build();
-      return $response->withJson($payload);
-*/
-    }
+ 
+   return $response->withJson($result);
+  // return $response;
+  }
 
 
 
-    
+public function denull(array $data = []): array
+{
+    $data = array_map(function($value) {
+        return is_array($value) ? $this->denull($value) : $value;
+    }, $data);
+
+    return array_filter($data, function($value) {
+        return !empty($value);
+    });
+}
 
 }
 
