@@ -201,6 +201,7 @@ $container->set('view', function (Container $c) {
     $environment->addFilter(new TwigFilter('json_decode', function ($string) {
         return json_decode($string);
     }));
+    $environment->addGlobal('settings', $c->get('settings'));
     $environment->addFilter(new TwigFilter('humanize', function ($string) {
         return \trim(\strtolower((string) \preg_replace(['/([A-Z])/', \sprintf('/[%s\s]+/', '_')], ['_$1', ' '], $string)));
     }));
