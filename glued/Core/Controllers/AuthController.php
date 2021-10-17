@@ -20,12 +20,25 @@ class AuthController extends AbstractTwigController
 
 {
 
-    public function keycloak_adm($request, $response) {
-        echo "<b>"."https://github.com/MohammadWaleed/keycloak-admin-client"."</b>";
-        $client = $this->oidc_adm;
-        echo "<br><b>".'$client->getUsers()'."</b>";
-        print("<pre>".json_encode($client->getUsers(), JSON_PRETTY_PRINT)."</pre>");
-        return $response;
+    /**
+     * List users known to the keycloak id server. Uses
+     * https://github.com/MohammadWaleed/keycloak-admin-client
+     * 
+     * @param  RequestInterface $request 
+     * @param  ResponseInterface $response
+     * @return [type]           [description]
+     */
+
+
+    public function getusers(Request $request, Response $response): Response {
+        $users = $this->oidc_adm->getUsers();
+        return $response->withJson($users);
+    }
+
+    public function keycloak_adm(Request $request, Response $response): Response {
+        $users = $this->oidc_adm->getUsers();
+        $routes = $this->utils->get_navigation( $this->utils->get_current_route($request) );
+        return $this->render($response, 'Core/Views/pages/users.twig', [ 'users' => $users, 'routes' => $routes ]);
     }
 
     public function keycloak_signin($request, $response) {

@@ -17,7 +17,7 @@ $app->group('/core', function (RouteCollectorProxy $route) {
     $route->get ('/auth/callback', Glued::class . ':signin')->setName('app.core.auth.callback');
     $route->get ('/auth/signout', Glued::class . ':signout')->setName('app.core.auth.signout');
     $route->get ('/auth/confidential/whoami', AuthController::class . ':keycloak_whoami')->setName('app.core.auth.confidential.whoami');
-    $route->get ('/auth/confidential/adm', AuthController::class . ':keycloak_adm')->setName('app.core.auth.confidential.adm');
+    $route->get ('/auth/adm/users', AuthController::class . ':keycloak_adm')->setName('app.core.auth.adm.users');
     $route->get ('/auth/enforce', AuthController::class . ':enforcer')->setName('app.core.auth.enforce');
     $route->get ('/phpinfo', function (Request $request, Response $response) {
         phpinfo();
@@ -34,6 +34,7 @@ $app->group('/api/core', function (RouteCollectorProxy $route) {
     $route->get ('/ui/routetree/v1', AdmController::class . ':ui')->setName('api.core.ui.routetree.v1');
     $route->get ('/healthcheck/v1/fe', ProxyController::class . ':fe_healthcheck')->setName('api.core.adm.healthcheck.fe.v1')->setArgument('x', 'y');//->setArguments(['becva' => 'lala']);
     $route->get ('/healthcheck/v1/be', ProxyController::class . ':be_healthcheck')->setName('api.core.adm.healthcheck.be.v1');
+    $route->get ('/auth/adm/users', AuthController::class . ':getusers')->setName('api.core.auth.adm.users.v1');
 });
 
 $app->get ('/api/test', ProxyController::class . ':proxy')->setName('api.proxy.test')->setArgument('endpoint', $settings['glued']['protocol'] . $settings['glued']['hostname'] . '/api/core/healthcheck/v1/be');

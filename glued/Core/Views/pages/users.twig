@@ -1,0 +1,50 @@
+{% extends '/Core/Views/templates/default.twig' %}
+
+{% block content %}
+<div class="section-header">
+    <h1>Users</h1>
+</div>
+
+<div class="section-body">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="contacts_items">
+                            <thead>
+                                <tr>
+                                    <th class="">{{ __('Email and UUID') }}</th>
+                                    <th class="">{{ __('Signed up') }}</th>
+                                    <th class="">{{ __('Nickname') }}</th>
+                                    <th class="">{{ __('Status') }}</th>
+                                    <th class="">{{ __('Name') }}</th>
+
+                                </tr>
+                            </thead>
+                            <tbody id="core_auth_adm_users_tbody">
+                                {% for v in users %}
+                                <tr id="core_auth_adm_users_{{ v.id }}">
+                                    <td>{{ v.email }}<br><small>{{ v.id }}</small></td>
+                                    <td>{{ v.createdTimestamp | slice(0, -3) | date("Y/m/d") }}</td>
+                                    <td>{{ v.username }}</td>
+                                    <td>{{ v.enabled ? '<i class="fas fa-play text-success" title="Enabled"></i>' : '' }} {{ v.totp ? '<i class="fas fa-user-clock" title="TOTP"></i>' : '' }} {{ v.emailVerified  ? '<i class="fas fa-user-check" title="Email verified"></i>' : '' }}</td>
+                                    <td>{{ v.firstName }} {{ v.lastName }}</td>
+                                </tr>
+                                {% endfor %}
+                           </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="rjsf"></div>  
+</div>
+{% endblock %}
+
+
+{% block additionaljs %}
+<script type="text/javascript" nonce="{{ csp_nonce.script_src }}">
+</script>
+{% endblock %}

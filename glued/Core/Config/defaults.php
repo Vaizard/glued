@@ -29,8 +29,8 @@ return [
             'label' => 'Whoami',
             'icon' => 'fas fa-user',
         ],
-        'app.core.auth.confidential.adm' => [
-            'label' => 'Identity Adm',
+        'app.core.auth.adm.users' => [
+            'label' => 'Admin users',
             'icon' => 'fas fa-user-cog',
         ],
         'api.core.adm.healthcheck.fe.v1' => [
@@ -65,6 +65,10 @@ return [
         'api.core.ui.routetree.v1' => [
             'label' => 'Route tree (v1)',
             'icon' => 'fas fa-sitemap',
+        ],
+        'api.core.auth.adm.users.v1' => [
+            'label' => 'Get users',
+            'icon' => 'fas fa-user-cog',
         ],
     ],
 
