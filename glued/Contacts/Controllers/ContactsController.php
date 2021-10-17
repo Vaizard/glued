@@ -390,6 +390,8 @@ class ContactsController extends AbstractTwigController
         $uid = $args['uid'] ?? null;
         $data = [];
         $domains = $this->db->get('t_core_domains');
+        $routes = $this->utils->get_navigation( $this->utils->get_current_route($request) );
+
 
         if ($uid) {
             $this->db->where('c_uid', $uid);
@@ -401,6 +403,7 @@ class ContactsController extends AbstractTwigController
         }
         return $this->render($response, 'Contacts/Views/collection.twig', [
             'domains' => $domains,
+            'routes' => $routes,
         ]);
     }
 
