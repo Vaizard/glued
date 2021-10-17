@@ -44,6 +44,7 @@ return [
         'app.core.home' => [
             'label' => 'Home',
             'icon' => 'fas fa-home',
+            'public' => true,
         ],
         'app.core.phpinfo' => [
             'label' => 'Phpinfo()',

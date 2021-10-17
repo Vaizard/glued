@@ -95,17 +95,19 @@ body {
     <script type="text/javascript" nonce="{{ csp_nonce.script_src }}">
 
         window.authenticator = new Authenticator({
-            tokenEndpoint: "{{ oidc_token }}",
-            authorizationEndpoint: "{{ oidc_auth }}",
-            clientId: "{{ oidc_client }}",
+            tokenEndpoint: "{{ settings.oidc.uri.token }}",
+            authorizationEndpoint: "{{ settings.oidc.uri.auth }}",
+            clientId: "{{ settings.oidc.client.public.id }}",
+            endSessionEndpoint: "{{ settings.oidc.uri.logout }}",
+            logoutRedirectUri: "https://{{ settings.glued.hostname }}{{ url_for('app.core.auth.signout') }}", 
         });
 
         window.authenticator.checkLogin().then((result) => {
             if(result.success) {
                 console.log("Consumed query parameters and authenticated successfully. See result bellow!");
                 console.log(result);
-                document.cookie = '{{ oidc_cookie_name }}=' + localStorage.getItem("access_token") + '; {{ oidc_cookie_params }}';
-                window.location = "https://{{ hostname }}{{ caller }}"
+                document.cookie = '{{ settings.oidc.cookie }}=' + localStorage.getItem("access_token") + '; {{ settings.oidc.cookie_params }}';
+                window.location = "https://{{ settings.glued.hostname }}{{ caller }}"; 
             } else {
                 authenticator.initiateLogin();
                 console.log("There were no query parameters to do authentication with, so the call to checkLogin() was useless...")

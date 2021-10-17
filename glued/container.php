@@ -122,6 +122,7 @@ $container->set('jsonvalidator', function () {
 });
 
 $container->set('routecollector', $app->getRouteCollector());
+$container->set('responsefactory', $app->getResponseFactory());
 
 
 /**

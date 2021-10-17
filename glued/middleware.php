@@ -53,9 +53,7 @@ $app->add(TimerMiddleware::class);
 // See https://www.slimframework.com/docs/v4/middleware/body-parsing.html
 $app->addBodyParsingMiddleware();
 
-// RoutingMiddleware provides the FastRoute router. See
-// https://www.slimframework.com/docs/v4/middleware/routing.html
-$app->addRoutingMiddleware();
+
 
 // TrailingSlash(false) removes the trailing from requests, for example
 // `https://example.com/user/` will change into https://example.com/user.
@@ -87,7 +85,9 @@ $app->add(new Tuupola\Middleware\CorsMiddleware);
 // Referrer-Policy headers.
 $app->add(new HeadersMiddleware($settings));
 
-
+// RoutingMiddleware provides the FastRoute router. See
+// https://www.slimframework.com/docs/v4/middleware/routing.html
+$app->addRoutingMiddleware();
 
 // Per the HTML standard, desktop browsers will only submit GET and POST requests, PUT
 // and DELETE requests will be handled as GET. MethodOverrideMiddleware allows browsers
@@ -96,6 +96,7 @@ $app->add(new HeadersMiddleware($settings));
 // and behave as a propper API client. This middleware must be added before 
 // $app->addRoutingMiddleware().
 $app->add(new MethodOverrideMiddleware);
+
 
 /**
  * *******************************

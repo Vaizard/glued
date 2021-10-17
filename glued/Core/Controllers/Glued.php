@@ -26,27 +26,34 @@ class Glued extends AbstractTwigController
     }
 
 
+    /**
+     * Unsets the OIDC cookie. The whole signout process consists of:
+     * - Unsetting the access_token, refresh_token and id_token from LocalStorage
+     *   via a javascript onclick event on the signout button (authentica.js)
+     * - Destroying user's session on the identity server by
+     *   letting authentica.js to redirect client to the id server's logout endpoint
+     * - Unsetting the OIDC cookie by
+     *   letting the id server redirect to the endpoint serviced by this function
+     * - Redirecting to the glued instances homepage.
+     */
     public function signout(Request $request, Response $response, array $args = []): Response {
-        setcookie($this->settings['oidc']['cookie'], '', time()-3600, '/', $this->settings['glued']['hostname']);
-        return $response->withRedirect($this->settings['oidc']['uri']['logout'] . '?' . http_build_query([ 'redirect_uri' => $this->settings['glued']['protocol'] . $this->settings['glued']['hostname'] ]));
+        $arr_cookie_options = array (
+                        'expires' => time() - 360000,
+                        'path' => $this->settings['oidc']['cookie_param']['path'],
+                        'secure' => $this->settings['oidc']['cookie_param']['secure'],
+                        'samesite' => $this->settings['oidc']['cookie_param']['samesite']
+                    );
+        setcookie($this->settings['oidc']['cookie'], '', $arr_cookie_options);   
+        return $response->withRedirect($this->settings['glued']['protocol'] . $this->settings['glued']['hostname']);
     }
 
 
     public function signin(Request $request, Response $response, array $args = []): Response {
         $caller = '';
         if ($enc = $request->getQueryParam('caller', $default = null)) {
-                $caller = $this->crypto->decrypt( $enc , $this->settings['crypto']['reqparams'] );
+            $caller = $this->crypto->decrypt( $enc , $this->settings['crypto']['reqparams'] );
         }
-
-        return $this->render($response, 'Core/Views/pages/auth.twig', [
-                'caller' => $caller,
-                'hostname' => $this->settings['glued']['hostname'],
-                'oidc_token' => $this->settings['oidc']['uri']['token'],
-                'oidc_auth' => $this->settings['oidc']['uri']['auth'],
-                'oidc_client' => $this->settings['oidc']['client']['public']['id'],
-                'oidc_cookie_name' => $this->settings['oidc']['cookie'],
-                'oidc_cookie_params' => $this->settings['oidc']['cookie_params'],
-        ]);
+        return $this->render($response, 'Core/Views/pages/auth.twig', [ 'caller' => $caller ]);
     }
 
 //INSERT INTO t VALUES(UUID_TO_BIN(UUID(), true));”

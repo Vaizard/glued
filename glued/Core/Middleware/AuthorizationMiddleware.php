@@ -23,6 +23,8 @@ use Glued\Core\Classes\Exceptions\AuthJwtException;
 use Glued\Core\Classes\Exceptions\AuthOidcException;
 use Glued\Core\Classes\Exceptions\DbException;
 use Glued\Core\Classes\Exceptions\TransformException;
+use Slim\Routing\RouteContext;
+
 
 /**
  * Deals with RBAC/ABAC
@@ -109,6 +111,8 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
             // Pass jwt data to twig
             $this->view->getEnvironment()->addGlobal('jwt_claims', $jwt->claims->all() ?? []);
             $this->view->getEnvironment()->addGlobal('jwt_header', $jwt->header->all() ?? []);
+            $this->view->getEnvironment()->addGlobal('authenticated', $jwt->header->all() ?? []);
+
 
             // TODO check validify of sub, email, etc.
             // TODO create profile and set attrs
@@ -116,9 +120,14 @@ final class AuthorizationMiddleware extends AbstractMiddleware implements Middle
 
         } 
         catch (AuthJwtException | AuthTokenException $e) {
-            if ($request->getUri()->getPath() != $this->routecollector->getRouteParser()->urlFor('app.core.auth.callback')) {
-                $en = $this->crypto->encrypt($request->getUri()->getPath(), $this->settings['crypto']['reqparams']);
-                return $handler->handle($request)->withRedirect($this->routecollector->getRouteParser()->urlFor('app.core.auth.callback') .'?'. http_build_query(['caller' => $en]));
+            $routename = $request->getAttribute(RouteContext::ROUTE)->getName();
+            $public = $this->settings['routes'][$routename]['public'] ?? false;
+            if (!$public) {
+                if ($request->getUri()->getPath() != $this->routecollector->getRouteParser()->urlFor('app.core.auth.callback')) {
+                    $en = $this->crypto->encrypt($request->getUri()->getPath(), $this->settings['crypto']['reqparams']);
+                    $response = $this->responsefactory->createResponse();
+                    return $response->withRedirect($this->routecollector->getRouteParser()->urlFor('app.core.auth.callback') .'?'. http_build_query(['caller' => $en]));
+                }
             }
         }
         catch (AuthOidcException $e) { echo $e->getMessage(); die(); }

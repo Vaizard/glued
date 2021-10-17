@@ -12,7 +12,6 @@ use Slim\Routing\RouteCollectorProxy;
 //echo $settings['oidc']['uri']['logout']; die();
 // Homepage
 $app->get('/', Glued::class)->setName('app.core.home');
-
 $app->group('/core', function (RouteCollectorProxy $route) {
     global $settings;
     $route->get ('/auth/callback', Glued::class . ':signin')->setName('app.core.auth.callback');
