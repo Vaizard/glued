@@ -138,7 +138,7 @@
         authorizationEndpoint: "{{ settings.oidc.uri.auth }}",
         clientId: "{{ settings.oidc.client.public.id }}",
         endSessionEndpoint: "{{ settings.oidc.uri.logout }}",
-        logoutRedirectUri: "//{{ settings.glued.hostname }}/{{ url_for('app.core.auth.signout') }}", 
+        logoutRedirectUri: "{{ settings.glued.protocol }}{{ settings.glued.hostname }}{{ url_for('app.core.auth.signout') }}", 
       });
 
     document.getElementById("initiateLogout").addEventListener("click", () => {
