@@ -11,7 +11,7 @@
             <div class="card">
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-striped" id="contacts_items">
+                        <table class="table table-hover" id="core_auth_adm_users_table">
                             <thead>
                                 <tr>
                                     <th class="">{{ __('Email and UUID') }}</th>
@@ -24,12 +24,14 @@
                             </thead>
                             <tbody id="core_auth_adm_users_tbody">
                                 {% for v in users %}
-                                <tr id="core_auth_adm_users_{{ v.id }}">
-                                    <td>{{ v.email }}<br><small>{{ v.id }}</small></td>
-                                    <td>{{ v.createdTimestamp | slice(0, -3) | date("Y/m/d") }}</td>
-                                    <td>{{ v.username }}</td>
-                                    <td>{{ v.enabled ? '<i class="fas fa-play text-success" title="Enabled"></i>' : '' }} {{ v.totp ? '<i class="fas fa-user-clock" title="TOTP"></i>' : '' }} {{ v.emailVerified  ? '<i class="fas fa-user-check" title="Email verified"></i>' : '' }}</td>
-                                    <td>{{ v.firstName }} {{ v.lastName }}</td>
+                                <tr id="core_auth_adm_users_{{ v.id }}" style="transform: rotate(0);">
+                                    
+                                        <td scope="row"><a href="./users/{{ v.id }}" class="stretched-link"><b>{{ v.email }}</b><br><small>{{ v.id }}</small></a></td>
+                                        <td>{{ v.createdTimestamp | slice(0, -3) | date("Y/m/d") }}</td>
+                                        <td>{{ v.username }}</td>
+                                        <td>{{ v.enabled ? '<i class="fas fa-play text-success" title="Enabled"></i>' : '' }} {{ v.totp ? '<i class="fas fa-user-clock" title="TOTP"></i>' : '' }} {{ v.emailVerified  ? '<i class="fas fa-user-check" title="Email verified"></i>' : '' }}</td>
+                                        <td>{{ v.firstName }} {{ v.lastName }}</td>
+                                    
                                 </tr>
                                 {% endfor %}
                            </tbody>

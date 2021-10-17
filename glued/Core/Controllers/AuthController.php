@@ -30,15 +30,22 @@ class AuthController extends AbstractTwigController
      */
 
 
-    public function getusers(Request $request, Response $response): Response {
+    public function getusers(Request $request, Response $response, $args): Response {
         $users = $this->oidc_adm->getUsers();
         return $response->withJson($users);
     }
 
-    public function keycloak_adm(Request $request, Response $response): Response {
-        $users = $this->oidc_adm->getUsers();
+    public function keycloak_adm(Request $request, Response $response, $args): Response {
+        $uuid = $args['uuid'] ?? null;
         $routes = $this->utils->get_navigation( $this->utils->get_current_route($request) );
-        return $this->render($response, 'Core/Views/pages/users.twig', [ 'users' => $users, 'routes' => $routes ]);
+
+        if ($uuid) {
+            $user = $this->oidc_adm->getUser([ 'id' => $uuid ]);
+            return $this->render($response, 'Core/Views/pages/user.twig', [ 'user' => $user, 'routes' => $routes ]);
+        } else {
+            $users = $this->oidc_adm->getUsers();
+            return $this->render($response, 'Core/Views/pages/users.twig', [ 'users' => $users, 'routes' => $routes ]);
+        }
     }
 
     public function keycloak_signin($request, $response) {

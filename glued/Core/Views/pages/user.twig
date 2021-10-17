@@ -1,0 +1,26 @@
+{% extends '/Core/Views/templates/default.twig' %}
+
+{% block content %}
+<div class="section-header">
+    <h1><a href="../users">Users</a> / {{ user.id }}</h1>
+</div>
+
+<div class="section-body">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-0">
+                      <pre>{{ user | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_SLASHES'))  | urls_to_html }}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="rjsf"></div>  
+</div>
+{% endblock %}
+
+
+{% block additionaljs %}
+<script type="text/javascript" nonce="{{ csp_nonce.script_src }}">
+</script>
+{% endblock %}

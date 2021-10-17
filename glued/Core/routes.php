@@ -17,7 +17,7 @@ $app->group('/core', function (RouteCollectorProxy $route) {
     $route->get ('/auth/callback', Glued::class . ':signin')->setName('app.core.auth.callback');
     $route->get ('/auth/signout', Glued::class . ':signout')->setName('app.core.auth.signout');
     $route->get ('/auth/confidential/whoami', AuthController::class . ':keycloak_whoami')->setName('app.core.auth.confidential.whoami');
-    $route->get ('/auth/adm/users', AuthController::class . ':keycloak_adm')->setName('app.core.auth.adm.users');
+    $route->get ('/auth/adm/users[/{uuid}]', AuthController::class . ':keycloak_adm')->setName('app.core.auth.adm.users');
     $route->get ('/auth/enforce', AuthController::class . ':enforcer')->setName('app.core.auth.enforce');
     $route->get ('/phpinfo', function (Request $request, Response $response) {
         phpinfo();
