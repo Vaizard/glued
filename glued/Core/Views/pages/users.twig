@@ -1,5 +1,7 @@
 {% extends '/Core/Views/templates/default.twig' %}
 
+{################################################################}
+
 {% block content %}
 <div class="section-header">
     <h1>Users</h1>
@@ -19,34 +21,45 @@
                                     <th class="">{{ __('Nickname') }}</th>
                                     <th class="">{{ __('Status') }}</th>
                                     <th class="">{{ __('Name') }}</th>
-
                                 </tr>
                             </thead>
-                            <tbody id="core_auth_adm_users_tbody">
-                                {% for v in users %}
-                                <tr id="core_auth_adm_users_{{ v.id }}" style="transform: rotate(0);">
-                                    
-                                        <td scope="row"><a href="./users/{{ v.id }}" class="stretched-link"><b>{{ v.email }}</b><br><small>{{ v.id }}</small></a></td>
-                                        <td>{{ v.createdTimestamp | slice(0, -3) | date("Y/m/d") }}</td>
-                                        <td>{{ v.username }}</td>
-                                        <td>{{ v.enabled ? '<i class="fas fa-play text-success" title="Enabled"></i>' : '' }} {{ v.totp ? '<i class="fas fa-user-clock" title="TOTP"></i>' : '' }} {{ v.emailVerified  ? '<i class="fas fa-user-check" title="Email verified"></i>' : '' }}</td>
-                                        <td>{{ v.firstName }} {{ v.lastName }}</td>
-                                    
-                                </tr>
-                                {% endfor %}
-                           </tbody>
+                            <tbody id="core_auth_adm_users_target">
+                            </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div id="rjsf"></div>  
+
+    <script type="text/twig" id="core_auth_adm_users_template" nonce="{{ csp_nonce.script_src }}">
+    {% verbatim %}
+    {% for v in data %}
+    <tr id="core_auth_adm_users_{{ v.id }}" style="transform: rotate(0);">
+        <td scope="row"><a href="./users/{{ v.id }}" class="stretched-link"><b>{{ v.email }}</b><br><small>{{ v.id }}</small></a></td>
+        <td>{{ (v.createdTimestamp//1000) | date('Y/m/d') }}</td>
+        <td>{{ v.username }}</td>
+        <td>{% if v.enabled %}<i class="fas fa-play text-success" title="Enabled"></i> {% endif %}{% if v.totp %}<i class="fas fa-user-clock" title="TOTP"></i> {% endif %}{% if v.emailVerified %}<i class="fas fa-user-check" title="Email verified"></i>{% endif %}</td>
+        <td>{{ v.firstName }} {{ v.lastName }}</td>
+    </tr>
+    {% endfor %}
+    {% endverbatim %}
+    </script>
 </div>
 {% endblock %}
 
+{################################################################}
 
 {% block additionaljs %}
 <script type="text/javascript" nonce="{{ csp_nonce.script_src }}">
+$( document ).ready( function() {
+    authenticator.authenticatedFetch( "{{ url_for('api.core.auth.adm.users.v1') }}", { headers: { "Accept": "application/json" }} )
+    .then( response => response.json() )
+    .then( (data) => {
+        $("#core_auth_adm_users_target").append(Twig.twig({ ref: "core_auth_adm_users_template" }).render({ data: data }))
+    }).catch(err => {
+        // Error handling
+    })
+});
 </script>
 {% endblock %}

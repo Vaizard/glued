@@ -31,8 +31,19 @@ class AuthController extends AbstractTwigController
 
 
     public function getusers(Request $request, Response $response, $args): Response {
-        $users = $this->oidc_adm->getUsers();
-        return $response->withJson($users);
+        try {
+            $uuid = $args['uuid'] ?? null;
+            if ($uuid) { 
+                $valid = v::uuid()->assert($uuid);
+                $data = $this->oidc_adm->getUser([ 'id' => $uuid ]); 
+            } else { 
+                $data = $this->oidc_adm->getUsers(); 
+            }
+        } catch (\Exception $e) {
+            $data = [ 'message' => 'Bad request', 'error' => $e->getMessages() ];
+            $code = 400;
+        }
+        return $response->withJson($data, $code ?? 200);
     }
 
     public function keycloak_adm(Request $request, Response $response, $args): Response {
@@ -41,10 +52,9 @@ class AuthController extends AbstractTwigController
 
         if ($uuid) {
             $user = $this->oidc_adm->getUser([ 'id' => $uuid ]);
-            return $this->render($response, 'Core/Views/pages/user.twig', [ 'user' => $user, 'routes' => $routes ]);
+            return $this->render($response, 'Core/Views/pages/user.twig', [ 'uuid' => $uuid, 'routes' => $routes ]);
         } else {
-            $users = $this->oidc_adm->getUsers();
-            return $this->render($response, 'Core/Views/pages/users.twig', [ 'users' => $users, 'routes' => $routes ]);
+            return $this->render($response, 'Core/Views/pages/users.twig', [ 'routes' => $routes ]);
         }
     }
 

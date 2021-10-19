@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="section-header">
-    <h1><a href="../users">Users</a> / {{ user.id }}</h1>
+    <h1><a href="../users">Users</a> / {{ uuid }}</h1>
 </div>
 
 <div class="section-body">
@@ -10,17 +10,25 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body p-0">
-                      <pre>{{ user | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_SLASHES'))  | urls_to_html }}</pre>
+                      <pre><code id="core_auth_adm_user_target" class="json"></code></pre>
                 </div>
             </div>
         </div>
     </div>
-    <div id="rjsf"></div>  
 </div>
 {% endblock %}
 
 
 {% block additionaljs %}
 <script type="text/javascript" nonce="{{ csp_nonce.script_src }}">
+$( document ).ready( function() {
+    authenticator.authenticatedFetch( "{{ url_for('api.core.auth.adm.users.v1') }}/{{ uuid }}", { headers: { "Accept": "application/json" }} )
+    .then( response => response.json() )
+    .then( (data) => {
+        document.getElementById("core_auth_adm_user_target").innerHTML = JSON.stringify(data,undefined, 4);
+    }).catch(err => {
+        // Error handling
+    })
+});
 </script>
 {% endblock %}

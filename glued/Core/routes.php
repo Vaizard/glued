@@ -34,7 +34,7 @@ $app->group('/api/core', function (RouteCollectorProxy $route) {
     $route->get ('/ui/routetree/v1', AdmController::class . ':ui')->setName('api.core.ui.routetree.v1');
     $route->get ('/healthcheck/v1/fe', ProxyController::class . ':fe_healthcheck')->setName('api.core.adm.healthcheck.fe.v1')->setArgument('x', 'y');//->setArguments(['becva' => 'lala']);
     $route->get ('/healthcheck/v1/be', ProxyController::class . ':be_healthcheck')->setName('api.core.adm.healthcheck.be.v1');
-    $route->get ('/auth/adm/users', AuthController::class . ':getusers')->setName('api.core.auth.adm.users.v1');
+    $route->get ('/auth/adm/users[/{uuid}]', AuthController::class . ':getusers')->setName('api.core.auth.adm.users.v1');
 });
 
 $app->get ('/api/test', ProxyController::class . ':proxy')->setName('api.proxy.test')->setArgument('endpoint', $settings['glued']['protocol'] . $settings['glued']['hostname'] . '/api/core/healthcheck/v1/be');

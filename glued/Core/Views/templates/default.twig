@@ -122,7 +122,6 @@
     ], name: 'glued-ui.js', nonce: csp_nonce.script_src}) }}
 
 
-  {% block additionaljs %}{% endblock %}
   {% include '/Stor/Views/fileupload.js.twig' %}
 
   <script nonce="{{ csp_nonce.script_src }}">
@@ -145,6 +144,8 @@
         authenticator.logout();
     });
   </script>
+
+  {% block additionaljs %}{% endblock %}
 
 </body>
 </html>

@@ -41,7 +41,7 @@
     "php-http/guzzle7-adapter": "^1",
     "php-http/message": "^1",
     "phpfastcache/phpfastcache": "^8.0",
-    "respect/validation": "^1.1",
+    "respect/validation": "^2",
     "sabre/event": "^5.1",
     "slim/http": "^1",
     "slim/slim": "^4",
